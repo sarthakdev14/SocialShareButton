@@ -76,8 +76,17 @@ this.isBrowser = typeof window !== 'undefined' && typeof document !== 'undefined
         ? document.querySelector(this.options.container)
         : this.options.container;
       
-      if (container && !container.querySelector('.social-share-btn')) {
-  container.appendChild(button);
+      if (container) {
+  const existingButton = container.querySelector('.social-share-btn');
+
+  if (existingButton) {
+    this.button = existingButton;
+    this.ownsButton = false;
+  } else {
+    container.appendChild(button);
+    this.button = button;
+    this.ownsButton = true;
+  }
 }
     }
   }
@@ -282,7 +291,9 @@ this.isBrowser = typeof window !== 'undefined' && typeof document !== 'undefined
     setTimeout(() => {
       this.isModalOpen = false;
       this.modal.style.display = 'none';
-      document.body.style.overflow = '';
+      if (this.isBrowser && document.body) {
+  document.body.style.overflow = '';
+}
     }, 200);
   }
 
