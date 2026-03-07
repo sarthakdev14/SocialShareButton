@@ -43,6 +43,8 @@ class SocialShareButton {
     this.customColorMouseEnterHandler = null;
     this.customColorMouseLeaveHandler = null;
     this._listeners = []; // Central registry for all event listeners
+    this._openTimeout = null;  // Track setTimeout for openModal animation
+    this._closeTimeout = null; // Track setTimeout for closeModal animation
 
     if (this.options.container) {
       this.init();
@@ -304,19 +306,37 @@ class SocialShareButton {
     this.modal.style.display = "flex";
     document.body.style.overflow = "hidden";
 
+    // Clear any pending open animation
+    if (this._openTimeout) {
+      clearTimeout(this._openTimeout);
+    }
+
     // Animate in
-    setTimeout(() => {
-      this.modal.classList.add("active");
+    this._openTimeout = setTimeout(() => {
+      if (this.modal) { // Safety check in case destroy() was called
+        this.modal.classList.add("active");
+      }
+      this._openTimeout = null;
     }, 10);
   }
 
   closeModal() {
+    if (!this.modal) return; // Safety check
+    
     this.modal.classList.remove("active");
 
-    setTimeout(() => {
-      this.isModalOpen = false;
-      this.modal.style.display = "none";
-      document.body.style.overflow = "";
+    // Clear any pending close animation
+    if (this._closeTimeout) {
+      clearTimeout(this._closeTimeout);
+    }
+
+    this._closeTimeout = setTimeout(() => {
+      if (this.modal) { // Safety check in case destroy() was called
+        this.isModalOpen = false;
+        this.modal.style.display = "none";
+        document.body.style.overflow = "";
+      }
+      this._closeTimeout = null;
     }, 200);
   }
 
@@ -402,6 +422,16 @@ class SocialShareButton {
     // Remove all tracked event listeners (prevents memory leaks)
     this._removeAllListeners();
 
+    // Clear any pending animation timeouts to prevent accessing null references
+    if (this._openTimeout) {
+      clearTimeout(this._openTimeout);
+      this._openTimeout = null;
+    }
+    if (this._closeTimeout) {
+      clearTimeout(this._closeTimeout);
+      this._closeTimeout = null;
+    }
+
     // Remove custom color handlers
     if (this.button && this.customColorMouseEnterHandler) {
       this.button.removeEventListener(
@@ -426,8 +456,15 @@ class SocialShareButton {
       this.modal.parentNode.removeChild(this.modal);
     }
 
-    // Restore body overflow
-    document.body.style.overflow = "";
+    // Restore body overflow only if this instance currently has the modal open
+    // This prevents conflicts when multiple instances exist
+    if (
+      this.isModalOpen &&
+      typeof document !== "undefined" &&
+      document.body
+    ) {
+      document.body.style.overflow = "";
+    }
 
     // Clear references (makes destroy idempotent)
     this.button = null;
