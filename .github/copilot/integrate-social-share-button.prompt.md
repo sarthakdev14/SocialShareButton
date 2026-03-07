@@ -17,6 +17,7 @@ You are helping a developer integrate the **SocialShareButton** library
 
 > 🚫 **IMPORTANT:** Do NOT create new files like `ShareButton.jsx` or `ShareButton.tsx`!
 > ✅ Add code directly to the developer's **existing** component (Header, Navbar, etc.)
+> 📄 **Exception:** If a separate file is needed (e.g. a dedicated share component), follow **Method 3 — React Wrapper Component** exclusively.
 
 ---
 
