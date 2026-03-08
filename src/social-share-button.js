@@ -42,11 +42,12 @@ class SocialShareButton {
     this.button = null;
     this.customColorMouseEnterHandler = null;
     this.customColorMouseLeaveHandler = null;
-    this._listeners = []; // Central registry for all event listeners
+    this.listeners = []; // Central registry for all event listeners
 
-    this._openTimeout = null;  // Track setTimeout for openModal animation
-    this._closeTimeout = null; // Track setTimeout for closeModal animation
-    this._ownsBodyLock = false; // Track if this instance owns the body overflow lock
+    this.openTimeout = null;  // Track setTimeout for openModal animation
+    this.closeTimeout = null; // Track setTimeout for closeModal animation
+    this.ownsBodyLock = false; // Track if this instance owns the body overflow lock
+    this.eventsAttached = false; // Guard against multiple attachEvents() calls
 
 
     if (this.options.container) {
@@ -228,29 +229,32 @@ class SocialShareButton {
     return urls[platform] || "";
   }
 
-  _addEventListener(element, type, handler, options = false) {
+  addEventListener(element, type, handler, options = false) {
     if (!element) return;
     element.addEventListener(type, handler, options);
-    this._listeners.push({ element, type, handler, options });
+    this.listeners.push({ element, type, handler, options });
   }
 
   /**
    * Remove all tracked event listeners
    */
-  _removeAllListeners() {
-    this._listeners.forEach(({ element, type, handler, options }) => {
+  removeAllListeners() {
+    this.listeners.forEach(({ element, type, handler, options }) => {
       if (element) {
         element.removeEventListener(type, handler, options);
       }
     });
-    this._listeners = [];
+    this.listeners = [];
   }
 
   attachEvents() {
+    // Re-entrancy guard: prevent double-registration if called multiple times
+    if (this.eventsAttached) return;
+
     // Button click to open modal
     if (this.button) {
       const openModalHandler = () => this.openModal();
-      this._addEventListener(this.button, "click", openModalHandler);
+      this.addEventListener(this.button, "click", openModalHandler);
     }
 
     // Modal overlay click to close
@@ -259,12 +263,12 @@ class SocialShareButton {
         this.closeModal();
       }
     };
-    this._addEventListener(this.modal, "click", modalClickHandler);
+    this.addEventListener(this.modal, "click", modalClickHandler);
 
     // Close button
     const closeBtn = this.modal.querySelector(".social-share-modal-close");
     const closeBtnHandler = () => this.closeModal();
-    this._addEventListener(closeBtn, "click", closeBtnHandler);
+    this.addEventListener(closeBtn, "click", closeBtnHandler);
 
     // Platform buttons
     const platformBtns = this.modal.querySelectorAll(
@@ -275,18 +279,18 @@ class SocialShareButton {
         const platform = btn.dataset.platform;
         this.share(platform);
       };
-      this._addEventListener(btn, "click", platformHandler);
+      this.addEventListener(btn, "click", platformHandler);
     });
 
     // Copy button
     const copyBtn = this.modal.querySelector(".social-share-copy-btn");
     const copyBtnHandler = () => this.copyLink();
-    this._addEventListener(copyBtn, "click", copyBtnHandler);
+    this.addEventListener(copyBtn, "click", copyBtnHandler);
 
     // Input click to select
     const input = this.modal.querySelector(".social-share-link-input input");
     const inputSelectHandler = (e) => e.target.select();
-    this._addEventListener(input, "click", inputSelectHandler);
+    this.addEventListener(input, "click", inputSelectHandler);
 
     // ESC key to close (document-level listener - critical for memory leak prevention)
     const escapeHandler = (e) => {
@@ -294,7 +298,9 @@ class SocialShareButton {
         this.closeModal();
       }
     };
-    this._addEventListener(document, "keydown", escapeHandler);
+    this.addEventListener(document, "keydown", escapeHandler);
+
+    this.eventsAttached = true; // Mark as attached
   }
 
   openModal() {
@@ -303,34 +309,34 @@ class SocialShareButton {
 
     // Shared body overflow management: only increment counter if this instance doesn't already own the lock
     if (typeof document !== "undefined" && document.body) {
-      if (!this._ownsBodyLock) {
+      if (!this.ownsBodyLock) {
         // Only increment if this instance doesn't already own a lock
-        if (SocialShareButton._openModalCount === 0) {
+        if (SocialShareButton.openModalCount === 0) {
           // Save original overflow before first modal opens
-          SocialShareButton._originalBodyOverflow = document.body.style.overflow;
+          SocialShareButton.originalBodyOverflow = document.body.style.overflow;
         }
-        SocialShareButton._openModalCount++;
-        this._ownsBodyLock = true; // Mark that this instance owns a lock
+        SocialShareButton.openModalCount++;
+        this.ownsBodyLock = true; // Mark that this instance owns a lock
       }
       document.body.style.overflow = "hidden";
     }
 
     // Clear any pending animations (both open and close to prevent race conditions)
-    if (this._openTimeout) {
-      clearTimeout(this._openTimeout);
-      this._openTimeout = null;
+    if (this.openTimeout) {
+      clearTimeout(this.openTimeout);
+      this.openTimeout = null;
     }
-    if (this._closeTimeout) {
-      clearTimeout(this._closeTimeout);
-      this._closeTimeout = null;
+    if (this.closeTimeout) {
+      clearTimeout(this.closeTimeout);
+      this.closeTimeout = null;
     }
 
     // Animate in
-    this._openTimeout = setTimeout(() => {
+    this.openTimeout = setTimeout(() => {
       if (this.modal) { // Safety check in case destroy() was called
         this.modal.classList.add("active");
       }
-      this._openTimeout = null;
+      this.openTimeout = null;
     }, 10);
   }
 
@@ -340,36 +346,36 @@ class SocialShareButton {
     this.modal.classList.remove("active");
 
     // Clear any pending animations (both open and close to prevent race conditions)
-    if (this._openTimeout) {
-      clearTimeout(this._openTimeout);
-      this._openTimeout = null;
+    if (this.openTimeout) {
+      clearTimeout(this.openTimeout);
+      this.openTimeout = null;
     }
-    if (this._closeTimeout) {
-      clearTimeout(this._closeTimeout);
-      this._closeTimeout = null;
+    if (this.closeTimeout) {
+      clearTimeout(this.closeTimeout);
+      this.closeTimeout = null;
     }
 
-    this._closeTimeout = setTimeout(() => {
+    this.closeTimeout = setTimeout(() => {
       if (this.modal) { // Safety check in case destroy() was called
         this.isModalOpen = false;
         this.modal.style.display = "none";
 
         // Shared body overflow management: only decrement if this instance owns the lock
-        if (this._ownsBodyLock && typeof document !== "undefined" && document.body) {
+        if (this.ownsBodyLock && typeof document !== "undefined" && document.body) {
           // Decrement counter (guard against negative)
-          if (SocialShareButton._openModalCount > 0) {
-            SocialShareButton._openModalCount--;
+          if (SocialShareButton.openModalCount > 0) {
+            SocialShareButton.openModalCount--;
           }
-          this._ownsBodyLock = false; // Release the lock
+          this.ownsBodyLock = false; // Release the lock
           
           // Restore original overflow only when all modals are closed
-          if (SocialShareButton._openModalCount === 0) {
-            document.body.style.overflow = SocialShareButton._originalBodyOverflow || "";
-            SocialShareButton._originalBodyOverflow = null;
+          if (SocialShareButton.openModalCount === 0) {
+            document.body.style.overflow = SocialShareButton.originalBodyOverflow || "";
+            SocialShareButton.originalBodyOverflow = null;
           }
         }
       }
-      this._closeTimeout = null;
+      this.closeTimeout = null;
     }, 200);
   }
 
@@ -453,16 +459,16 @@ class SocialShareButton {
 
   destroy() {
     // Remove all tracked event listeners (prevents memory leaks)
-    this._removeAllListeners();
+    this.removeAllListeners();
 
     // Clear any pending animation timeouts to prevent accessing null references
-    if (this._openTimeout) {
-      clearTimeout(this._openTimeout);
-      this._openTimeout = null;
+    if (this.openTimeout) {
+      clearTimeout(this.openTimeout);
+      this.openTimeout = null;
     }
-    if (this._closeTimeout) {
-      clearTimeout(this._closeTimeout);
-      this._closeTimeout = null;
+    if (this.closeTimeout) {
+      clearTimeout(this.closeTimeout);
+      this.closeTimeout = null;
     }
 
     // Remove custom color handlers
@@ -490,17 +496,17 @@ class SocialShareButton {
     }
 
     // Shared body overflow management: only decrement if this instance owns the lock
-    if (this._ownsBodyLock && typeof document !== "undefined" && document.body) {
+    if (this.ownsBodyLock && typeof document !== "undefined" && document.body) {
       // Decrement counter (guard against negative)
-      if (SocialShareButton._openModalCount > 0) {
-        SocialShareButton._openModalCount--;
+      if (SocialShareButton.openModalCount > 0) {
+        SocialShareButton.openModalCount--;
       }
-      this._ownsBodyLock = false; // Release the lock
+      this.ownsBodyLock = false; // Release the lock
       
       // Restore original overflow only when all modals are closed
-      if (SocialShareButton._openModalCount === 0) {
-        document.body.style.overflow = SocialShareButton._originalBodyOverflow || "";
-        SocialShareButton._originalBodyOverflow = null;
+      if (SocialShareButton.openModalCount === 0) {
+        document.body.style.overflow = SocialShareButton.originalBodyOverflow || "";
+        SocialShareButton.originalBodyOverflow = null;
       }
     }
 
@@ -508,6 +514,7 @@ class SocialShareButton {
     this.button = null;
     this.modal = null;
     this.isModalOpen = false;
+    this.eventsAttached = false; // Reset re-entrancy guard
   }
 
   updateOptions(options) {
@@ -586,7 +593,7 @@ class SocialShareButton {
       }
     };
 
-    // Note: Custom color handlers are managed separately (not in _listeners)
+    // Note: Custom color handlers are managed separately (not in listeners)
     // because they need to be removed/reapplied when colors change
     this.button.addEventListener(
       "mouseenter",
@@ -600,8 +607,8 @@ class SocialShareButton {
 }
 
 // Static properties for shared body overflow management across all instances
-SocialShareButton._openModalCount = 0;
-SocialShareButton._originalBodyOverflow = null;
+SocialShareButton.openModalCount = 0;
+SocialShareButton.originalBodyOverflow = null;
 
 // Export for different module systems
 if (typeof module !== "undefined" && module.exports) {
