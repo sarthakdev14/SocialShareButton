@@ -301,7 +301,7 @@ class SocialShareButton {
     };
     if (typeof document !== "undefined") {
        document.addEventListener("keydown", this.handleKeydown);
-     
+    }
 
     this.eventsAttached = true; // Mark as attached
   }
@@ -498,7 +498,9 @@ class SocialShareButton {
 
   destroy() {
     if (this.handleKeydown) {
-      document.removeEventListener("keydown", this.handleKeydown);
+      if (typeof document !== "undefined") {
+        document.removeEventListener("keydown", this.handleKeydown);
+      }
       this.handleKeydown = null;
     }
     // Mark as destroyed to prevent async callbacks
