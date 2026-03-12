@@ -53,26 +53,26 @@ export default function SocialShareButton({
       title || (typeof document !== "undefined" ? document.title : "");
 
     const initButton = () => {
-  if (shareButtonRef.current) return;
-  if (containerRef.current) {
-    shareButtonRef.current = new window.SocialShareButton({
-      container: containerRef.current,
-      url: resolvedUrl,
-      title: resolvedTitle,
-      description,
-      hashtags,
-      via,
-      platforms,
-      theme,
-      buttonText,
-      customClass,
-      onShare,
-      onCopy,
-      buttonStyle,
-      modalPosition,
-    });
-  }
-};
+      if (shareButtonRef.current) return;
+      if (containerRef.current) {
+        shareButtonRef.current = new window.SocialShareButton({
+          container: containerRef.current,
+          url: resolvedUrl,
+          title: resolvedTitle,
+          description,
+          hashtags,
+          via,
+          platforms,
+          theme,
+          buttonText,
+          customClass,
+          onShare,
+          onCopy,
+          buttonStyle,
+          modalPosition,
+        });
+      }
+    };
 
     if (typeof window === "undefined") return () => {};
 
