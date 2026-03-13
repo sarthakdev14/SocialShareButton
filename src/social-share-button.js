@@ -190,6 +190,8 @@ class SocialShareButton {
     // Email: Friendly greeting
     emailBody = `Hey \u{1F44B}\n\nSharing a clean project I came across:\n${title}${description ? '\n\n' + description : ''}\n\nLive, simple, and usable \u{2014} take a look \u{1F447}`;
     
+    // Pinterest: Title + Description
+    pinterestText = `${title}${description ? ' - ' + description : ''}`;
     const encodedWhatsapp = encodeURIComponent(whatsappMessage);
     const encodedFacebook = encodeURIComponent(facebookMessage);
     const encodedTwitter = encodeURIComponent(twitterMessage);
