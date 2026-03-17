@@ -135,7 +135,7 @@ export default function SocialShareButton({
     modalPosition,
     analytics,
     onAnalytics,
-    analyticsPluginsDep,
+    analyticsPlugins,
     componentId,
     debug,
   ]);
