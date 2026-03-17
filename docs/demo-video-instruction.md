@@ -1,149 +1,19 @@
 # Demo Video Instructions for Framework Integrations
 
-> **Note**
-> This guide is intended only for contributors of this repository who are adding new framework integrations.
-> It is **not meant for users integrating the Social Share Button library in their own projects.**
+**Note:** These demo video instructions are **only for contributors of this repository** submitting feature Pull Requests.
+They are **not intended for end users integrating SocialShareButton into their own frontend applications.**
+
+**Do not record your demo using this repository's `index.html`.**
+
+Your demo must show SocialShareButton integrated into a **brand new project created with the official framework starter**. This represents how a real end-user would install or import and use the library in their own app.
 
 ---
 
-# 🎥 Demo Video Requirements
+### ⚠️ Important Note for PR Testing
 
-Contributors must follow these requirements when creating the demo video.
-
-* **Duration:** ≤ 150 seconds
-* Demonstrate the **integration guide added in your PR** (or the guide already present in README/docs)
-* Show the **share button rendering correctly on localhost**
-* Upload the video to **Google Drive or any platform with a public access link**
-* Maintainers will later upload the video to the **AOSSIE YouTube channel**
-* Add the **public video link to the README demo section**
-
----
-
-# 📌 What the Video Should Show
-
-The demo video should follow this sequence.
-
-## 1. Create a Clean Framework Project
-
-Create a fresh project using the **official framework starter**.
-Do **not use this repository directly for the demo**.
-
-Examples:
-
-### Qwik
-
-```
-npm create qwik@latest
-npm install
-npm run dev
-```
-
-### Preact
-
-```
-npm create preact@latest
-```
-
-### Remix
-
-```
-npx create-remix@latest
-```
-
-### SolidJS
-
-```
-npx degit solidjs/templates/js my-app
-```
-
-### Rails
-
-```
-rails new my-app
-```
-
-### Django
-
-```
-django-admin startproject myapp
-```
-
-Using official starters ensures the demo uses a **clean project structure**.
-
----
-
-## 2. Integrate the Social Share Button
-
-Show how the **Social Share Button** library is integrated into the framework project.
-
-This should include:
-
-* Importing or including the library
-* Adding the framework wrapper
-* Rendering the share button in a component or page
-
----
-
-## 3. Show the Integration Code
-
-Briefly walk through the relevant integration files added in your PR.
-
-Examples:
-
-```
-social-share-button-react.js
-social-share-button-qwik.js
-social-share-button-solid.js
-```
-
-Explain briefly how the wrapper connects the framework with the Social Share Button library.
-
----
-
-## 4. Run the Project
-
-Start the development server.
-
-Example:
-
-```
-npm install
-npm run dev
-```
-
-Open the browser and show the application running locally:
-
-```
-http://localhost:5173
-```
-
-The share button should render correctly on the page.
-
----
-
-## 5. Demonstrate the Share Button Features
-
-The demo must show the following actions:
-
-* Click the **Share button** to open the modal
-* Demonstrate at least **two sharing platforms** (e.g., WhatsApp, X/Twitter, LinkedIn)
-* Demonstrate the **Copy Link** button and show the **"Copied!"** feedback
-* Close the modal using the close button, overlay click, or ESC key
-* Show the **browser console** to confirm there are **no errors**
-
----
-
-# ⚠️ Important Note for PR Testing
-
-In many cases, new wrapper files exist **only in the contributor's PR branch** and are **not included in the latest CDN release (e.g., v1.0.3)**.
-
-If the released CDN version is used, the demo may load **older code**, which can break the integration demo.
+If you are adding a new file in your PR, the new wrapper files exist **only in the contributor's PR branch** and are **not included in the latest CDN release (e.g., v1.0.3)**. Using the released CDN may load **older code**, which can break the integration demo.
 
 For demo recording, contributors should use **jsDelivr with their branch name**.
-
----
-
-# 🌐 Using jsDelivr with Your Branch
 
 Use the following CDN format:
 
@@ -166,41 +36,56 @@ BRANCH_NAME: feat/qwik-integration
 <script src="https://cdn.jsdelivr.net/gh/aashnaachaudhary10/SocialShareButton@feat/qwik-integration/src/social-share-button.js"></script>
 ```
 
-This ensures the demo loads the **latest code from the contributor’s branch**.
+---
+
+## Requirements
+
+Follow the **integration guide added in your PR** (or show the integration steps if they are already present in the **README or docs section**).
+
+### Content Checklist
+
+Your video must cover all of the following:
+
+1. **Briefly show the fresh project** — the terminal output of the starter command or the running dev server URL (the video should start from here; no need to show the starter project setup).
+2. **Show the setup inside the codebase** — demonstrate what code you added to integrate SocialShareButton.
+3. **Show the integration guide added in your PR** (or show the section if it already exists in the README or documentation).
+4. **Demonstrate the button rendering on localhost** in the running application.
+5. **Click the Share button** to open the modal.
+6. **Demonstrate at least two platform share links** (e.g., WhatsApp, Twitter/X, LinkedIn).
+7. **Demonstrate the Copy Link button** — show the "Copied!" feedback.
+8. **Close the modal** (via the close button, overlay click, or ESC key).
+9. **Show the browser console** is free of errors during the demo.
 
 ---
 
-# 📹 Reference Demo
+## Video Quality
 
-Next.js App Router example:
+* Minimum resolution: **720p (1280×720)**.
+* Make sure the browser window and all UI elements are **clearly and fully visible** — avoid recording a tiny window.
+* **Do not perform any actions in the background while recording the preview** (such as running scripts, console commands, automation tools, or manual changes outside the UI). All interactions must be visible in the interface.
 
-https://youtu.be/cLJaT-8rEvQ
+> ⚠️ **Warning:** If hidden or background actions are detected during the preview, the submission may be **rejected**.
 
-Contributors may follow a similar structure when creating their demo videos.
-
----
-
-# ✅ Final Checklist
-
-Before submitting your PR, ensure that:
-
-* [ ] Demo video created (≤150 seconds)
-* [ ] Integration setup shown
-* [ ] Code walkthrough included
-* [ ] Button rendering shown on localhost
-* [ ] Video uploaded with public access
-* [ ] Video link added to the README demo section
+* Audio commentary is optional but encouraged; if you choose to narrate, keep it clear.
+* No need for heavy editing — a clean screen recording is sufficient.
 
 ---
 
-# 💬 Getting Help
+## Notes
 
-If you have questions regarding framework integration or demo recording, ask in the **AOSSIE Discord server**.
+* The video duration must be **150 seconds (2 minutes 30 seconds) or less**.
+* Upload the video to **Google Drive or any platform with public access** (the maintainers will later upload it to the **AOSSIE YouTube channel**).
+* Add the **public video link to the README demo section** of the repository where the integration is demonstrated.
+* **Reference Demo (Next.js App Router):**
+  [https://youtu.be/cLJaT-8rEvQ?si=CLipA0Db4WL0EqKM](https://youtu.be/cLJaT-8rEvQ?si=CLipA0Db4WL0EqKM)
 
-Please include:
+---
 
-* Your framework (React, Qwik, SolidJS, etc.)
-* Link to your Pull Request
-* A short description of the issue
+## Context
 
-Discord: https://discord.com/invite/hjUhu33uAn
+**SocialShareButton** is also a **small component of a potential idea for GSoC 2026**:
+
+AOSSIE GSoC Ideas
+[https://github.com/AOSSIE-Org/Info/blob/main/GSoC-Ideas/2026/SEO.md](https://github.com/AOSSIE-Org/Info/blob/main/GSoC-Ideas/2026/SEO.md)
+
+Because of this, we aim to build **short tutorial-style demos for developers** that clearly demonstrate the **button’s integration and functionality across frameworks**.
