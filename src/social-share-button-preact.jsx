@@ -92,12 +92,6 @@ export default function SocialShareButton({
           // Stop polling after max attempts to avoid infinite loop.
           clearInterval(checkInterval);
           checkInterval = null;
-
-          if (debug) {
-            console.warn(
-              "SocialShareButton: CDN script did not load within timeout."
-            );
-          }
         }
       }, 100);
     }
