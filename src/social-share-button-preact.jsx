@@ -60,6 +60,8 @@ export default function SocialShareButton({
 
   useEffect(() => {
     let checkInterval = null;
+    let attempts = 0;
+    const MAX_POLL_ATTEMPTS = 300;// ~30s at 100ms
 
     const initButton = () => {
       if (shareButtonRef.current) return;
@@ -79,16 +81,19 @@ export default function SocialShareButton({
     } else {
       // Poll until the script registers the global, then initialize once.
       checkInterval = setInterval(() => {
+        attempts += 1;
         if (window.SocialShareButton) {
           // Stop polling as soon as the library is available.
           clearInterval(checkInterval);
           checkInterval = null;
           initButton();
+          } else if (attempts >= MAX_POLL_ATTEMPTS) {
++          clearInterval(checkInterval);
+            checkInterval = null;
         }
       }, 100);
     }
     return () => {
-      // Cleanup: stop polling and destroy the instance on unmount.
       if (checkInterval) clearInterval(checkInterval);
       if (shareButtonRef.current) {
         shareButtonRef.current.destroy();
@@ -96,17 +101,14 @@ export default function SocialShareButton({
       }
     };
   }, []);
-
-  // Serialize arrays/objects to stable strings for effect dependency comparison —
-  // avoids missed updates from reference inequality and prevents accidental regressions.
+  // Normalize array deps to avoid re-running updateOptions on new array references with same values.
   const hashtagsDep = JSON.stringify(hashtags);
   const platformsDep = JSON.stringify(platforms);
+  const analyticsPluginsDep = JSON.stringify(analyticsPlugins);
 
   useEffect(() => {
     if (shareButtonRef.current) {
       shareButtonRef.current.updateOptions({
-        // Use resolved values so defaults (window.location.href / document.title)
-        // are passed when the raw url/title props are empty.
         url: resolvedUrl,
         title: resolvedTitle,
         description,
@@ -128,8 +130,6 @@ export default function SocialShareButton({
       });
     }
   }, [
-    // Track resolved values, not raw props, so the effect re-runs when the
-    // window/document fallbacks change (e.g. client-side navigation).
     resolvedUrl,
     resolvedTitle,
     description,
@@ -145,7 +145,7 @@ export default function SocialShareButton({
     modalPosition,
     analytics,
     onAnalytics,
-    analyticsPlugins,
+    analyticsPluginsDep,
     componentId,
     debug,
   ]);
