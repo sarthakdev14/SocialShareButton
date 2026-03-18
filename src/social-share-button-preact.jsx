@@ -51,6 +51,11 @@ export default function SocialShareButton({
     onCopy,
     buttonStyle,
     modalPosition,
+    analytics,
+    onAnalytics,
+    analyticsPlugins,
+    componentId,
+    debug,
   };
 
   useEffect(() => {
@@ -92,12 +97,16 @@ export default function SocialShareButton({
     };
   }, []);
 
+  // Serialize arrays/objects to stable strings for effect dependency comparison —
+  // avoids missed updates from reference inequality and prevents accidental regressions.
   const hashtagsDep = JSON.stringify(hashtags);
   const platformsDep = JSON.stringify(platforms);
 
   useEffect(() => {
     if (shareButtonRef.current) {
       shareButtonRef.current.updateOptions({
+        // Use resolved values so defaults (window.location.href / document.title)
+        // are passed when the raw url/title props are empty.
         url: resolvedUrl,
         title: resolvedTitle,
         description,
@@ -119,8 +128,10 @@ export default function SocialShareButton({
       });
     }
   }, [
-    url,
-    title,
+    // Track resolved values, not raw props, so the effect re-runs when the
+    // window/document fallbacks change (e.g. client-side navigation).
+    resolvedUrl,
+    resolvedTitle,
     description,
     hashtagsDep,
     via,
