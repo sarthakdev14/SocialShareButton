@@ -473,7 +473,7 @@ new SocialShareButton({
 | `onCopy`           | function       | `null`                 | Callback when user copies link: `(url) => {}`      |
 
 **Available Platforms:**  
-`whatsapp`, `facebook`, `twitter`, `linkedin`, `telegram`, `reddit`, `email`, `reddit`
+`whatsapp`, `facebook`, `twitter`, `linkedin`, `telegram`, `reddit`, `email`, `pinterest`
 
 ### Customize Share Message/Post Text
 
