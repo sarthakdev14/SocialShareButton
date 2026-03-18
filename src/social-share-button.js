@@ -19,14 +19,15 @@ class SocialShareButton {
       description: options.description || "",
       hashtags: options.hashtags || [],
       via: options.via || "",
-      platforms: options.platforms || [
-        "whatsapp",
-        "facebook",
-        "twitter",
-        "linkedin",
-        "telegram",
-        "reddit",
-      ],
+          platforms: options.platforms || [
+            "whatsapp",
+            "facebook",
+            "twitter",
+            "linkedin",
+            "telegram",
+            "reddit",
+            "pinterest"
+          ],  
       theme: options.theme || "dark",
       buttonText: options.buttonText || "Share",
       customClass: options.customClass || "",
@@ -168,8 +169,13 @@ class SocialShareButton {
       },
       email: {
         name: "Email",
-        color: "#7f7f7f",
-        icon: '<path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>',
+        color: '#7f7f7f',
+        icon: '<path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>'
+      },
+      pinterest: {
+        name: "Pinterest",
+        color: '#E60023',
+        icon: '<path d="M12 0C5.372 0 0 5.373 0 12c0 4.99 3.052 9.267 7.386 11.059-.102-.94-.194-2.385.04-3.413.211-.904 1.356-5.752 1.356-5.752s-.346-.693-.346-1.717c0-1.608.932-2.808 2.093-2.808.987 0 1.463.741 1.463 1.63 0 .993-.632 2.476-.958 3.853-.273 1.155.58 2.098 1.718 2.098 2.062 0 3.646-2.174 3.646-5.31 0-2.778-1.997-4.722-4.847-4.722-3.304 0-5.242 2.478-5.242 5.039 0 .997.384 2.066.865 2.647.095.115.109.215.08.331-.088.365-.282 1.155-.321 1.316-.05.212-.165.257-.381.155-1.418-.66-2.305-2.733-2.305-4.397 0-3.579 2.601-6.867 7.497-6.867 3.936 0 6.998 2.805 6.998 6.557 0 3.91-2.466 7.058-5.892 7.058-1.15 0-2.232-.597-2.6-1.302l-.707 2.692c-.255.983-.946 2.215-1.408 2.966A12.002 12.002 0 0024 12C24 5.373 18.627 0 12 0z"/>'
       },
     };
 
@@ -197,13 +203,8 @@ class SocialShareButton {
     const hashtagString = hashtags.length ? "#" + hashtags.join(" #") : "";
 
     // Build platform-specific messages with customizable parameters
-    let whatsappMessage,
-      facebookMessage,
-      twitterMessage,
-      telegramMessage,
-      redditTitle,
-      emailBody;
-
+    let whatsappMessage, facebookMessage, twitterMessage, telegramMessage, redditTitle, emailBody, pinterestText;
+    
     // WhatsApp: Casual with emoji
     whatsappMessage = `\u{1F680} ${title}${description ? "\n\n" + description : ""}${hashtagString ? "\n\n" + hashtagString : ""}\n\nLive on the site \u{1F440}\nClean UI, smooth flow \u{2014} worth peeking\n\u{1F447}`;
 
@@ -221,13 +222,17 @@ class SocialShareButton {
 
     // Email: Friendly greeting
     emailBody = `Hey \u{1F44B}\n\nSharing a clean project I came across:\n${title}${description ? "\n\n" + description : ""}\n\nLive, simple, and usable \u{2014} take a look \u{1F447}`;
-
+    
+   // Pinterest: Title + Description
+    pinterestText = `${title || ''}${description ? ' - ' + description : ''}`;
+    
     const encodedWhatsapp = encodeURIComponent(whatsappMessage);
     const encodedFacebook = encodeURIComponent(facebookMessage);
     const encodedTwitter = encodeURIComponent(twitterMessage);
     const encodedTelegram = encodeURIComponent(telegramMessage);
     const encodedReddit = encodeURIComponent(redditTitle);
     const encodedEmail = encodeURIComponent(emailBody);
+    const encodedPinterest = encodeURIComponent(pinterestText);
 
     const urls = {
       whatsapp: `https://wa.me/?text=${encodedWhatsapp}%20${encodedUrl}`,
@@ -237,6 +242,7 @@ class SocialShareButton {
       telegram: `https://t.me/share/url?url=${encodedUrl}&text=${encodedTelegram}`,
       reddit: `https://reddit.com/submit?url=${encodedUrl}&title=${encodedReddit}`,
       email: `mailto:?subject=${encodedTitle}&body=${encodedEmail}%20${encodedUrl}`,
+      pinterest: `https://pinterest.com/pin/create/button/?url=${encodedUrl}&description=${encodedPinterest}`,
     };
 
     return urls[platform] || "";

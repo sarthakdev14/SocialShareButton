@@ -13,6 +13,7 @@ export const SocialShareButton = ({
     "linkedin",
     "telegram",
     "reddit",
+    "pinterest"
   ],
   theme = "dark",
   buttonText = "Share",
