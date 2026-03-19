@@ -4,6 +4,9 @@
  * @license GPL-3.0
  */
 
+/** Analytics event schema version. Increment when the payload shape changes. */
+const ANALYTICS_SCHEMA_VERSION = "1.0";
+
 class SocialShareButton {
   constructor(options = {}) {
     this.options = {
@@ -16,14 +19,15 @@ class SocialShareButton {
       description: options.description || "",
       hashtags: options.hashtags || [],
       via: options.via || "",
-      platforms: options.platforms || [
-        "whatsapp",
-        "facebook",
-        "twitter",
-        "linkedin",
-        "telegram",
-        "reddit",
-      ],
+          platforms: options.platforms || [
+            "whatsapp",
+            "facebook",
+            "twitter",
+            "linkedin",
+            "telegram",
+            "reddit",
+            "pinterest"
+          ],  
       theme: options.theme || "dark",
       buttonText: options.buttonText || "Share",
       customClass: options.customClass || "",
@@ -35,6 +39,13 @@ class SocialShareButton {
       showButton: options.showButton !== false,
       buttonStyle: options.buttonStyle || "default",
       modalPosition: options.modalPosition || "center",
+      // Analytics — the library emits events but never collects or sends data itself.
+      // Website owners wire up their own analytics tools via these options.
+      analytics: options.analytics !== false, // set to false to disable all event emission
+      onAnalytics: options.onAnalytics || null, // callback: (payload) => void
+      analyticsPlugins: options.analyticsPlugins || [], // array of { track(payload) } adapters
+      componentId: options.componentId || null, // optional identifier for this instance
+      debug: options.debug || false, // log emitted events to console in development
     };
 
     this.isModalOpen = false;
@@ -158,8 +169,13 @@ class SocialShareButton {
       },
       email: {
         name: "Email",
-        color: "#7f7f7f",
-        icon: '<path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>',
+        color: '#7f7f7f',
+        icon: '<path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>'
+      },
+      pinterest: {
+        name: "Pinterest",
+        color: '#E60023',
+        icon: '<path d="M12 0C5.372 0 0 5.373 0 12c0 4.99 3.052 9.267 7.386 11.059-.102-.94-.194-2.385.04-3.413.211-.904 1.356-5.752 1.356-5.752s-.346-.693-.346-1.717c0-1.608.932-2.808 2.093-2.808.987 0 1.463.741 1.463 1.63 0 .993-.632 2.476-.958 3.853-.273 1.155.58 2.098 1.718 2.098 2.062 0 3.646-2.174 3.646-5.31 0-2.778-1.997-4.722-4.847-4.722-3.304 0-5.242 2.478-5.242 5.039 0 .997.384 2.066.865 2.647.095.115.109.215.08.331-.088.365-.282 1.155-.321 1.316-.05.212-.165.257-.381.155-1.418-.66-2.305-2.733-2.305-4.397 0-3.579 2.601-6.867 7.497-6.867 3.936 0 6.998 2.805 6.998 6.557 0 3.91-2.466 7.058-5.892 7.058-1.15 0-2.232-.597-2.6-1.302l-.707 2.692c-.255.983-.946 2.215-1.408 2.966A12.002 12.002 0 0024 12C24 5.373 18.627 0 12 0z"/>'
       },
     };
 
@@ -187,13 +203,8 @@ class SocialShareButton {
     const hashtagString = hashtags.length ? "#" + hashtags.join(" #") : "";
 
     // Build platform-specific messages with customizable parameters
-    let whatsappMessage,
-      facebookMessage,
-      twitterMessage,
-      telegramMessage,
-      redditTitle,
-      emailBody;
-
+    let whatsappMessage, facebookMessage, twitterMessage, telegramMessage, redditTitle, emailBody, pinterestText;
+    
     // WhatsApp: Casual with emoji
     whatsappMessage = `\u{1F680} ${title}${description ? "\n\n" + description : ""}${hashtagString ? "\n\n" + hashtagString : ""}\n\nLive on the site \u{1F440}\nClean UI, smooth flow \u{2014} worth peeking\n\u{1F447}`;
 
@@ -211,13 +222,17 @@ class SocialShareButton {
 
     // Email: Friendly greeting
     emailBody = `Hey \u{1F44B}\n\nSharing a clean project I came across:\n${title}${description ? "\n\n" + description : ""}\n\nLive, simple, and usable \u{2014} take a look \u{1F447}`;
-
+    
+   // Pinterest: Title + Description
+    pinterestText = `${title || ''}${description ? ' - ' + description : ''}`;
+    
     const encodedWhatsapp = encodeURIComponent(whatsappMessage);
     const encodedFacebook = encodeURIComponent(facebookMessage);
     const encodedTwitter = encodeURIComponent(twitterMessage);
     const encodedTelegram = encodeURIComponent(telegramMessage);
     const encodedReddit = encodeURIComponent(redditTitle);
     const encodedEmail = encodeURIComponent(emailBody);
+    const encodedPinterest = encodeURIComponent(pinterestText);
 
     const urls = {
       whatsapp: `https://wa.me/?text=${encodedWhatsapp}%20${encodedUrl}`,
@@ -227,6 +242,7 @@ class SocialShareButton {
       telegram: `https://t.me/share/url?url=${encodedUrl}&text=${encodedTelegram}`,
       reddit: `https://reddit.com/submit?url=${encodedUrl}&title=${encodedReddit}`,
       email: `mailto:?subject=${encodedTitle}&body=${encodedEmail}%20${encodedUrl}`,
+      pinterest: `https://pinterest.com/pin/create/button/?url=${encodedUrl}&description=${encodedPinterest}`,
     };
 
     return urls[platform] || "";
@@ -311,6 +327,7 @@ class SocialShareButton {
 
     this.isModalOpen = true;
     this.modal.style.display = "flex";
+    this._emit("social_share_popup_open", "popup_open");
 
     // Shared body overflow management: only increment counter if this instance doesn't already own the lock
     if (typeof document !== "undefined" && document.body) {
@@ -349,6 +366,7 @@ class SocialShareButton {
     if (!this.modal) return; // Safety check
 
     this.modal.classList.remove("active");
+    this._emit("social_share_popup_close", "popup_close");
 
     // Clear any pending animations (both open and close to prevent race conditions)
     if (this.openTimeout) {
@@ -388,6 +406,8 @@ class SocialShareButton {
     const shareUrl = this.getShareURL(platform);
 
     if (shareUrl) {
+      this._emit("social_share_click", "share", { platform });
+
       if (platform === "email") {
         window.location.href = shareUrl;
       } else {
@@ -398,9 +418,16 @@ class SocialShareButton {
         );
       }
 
+      this._emit("social_share_success", "share", { platform });
+
       if (this.options.onShare) {
         this.options.onShare(platform, this.options.url);
       }
+    } else {
+      this._emit("social_share_error", "error", {
+        platform,
+        errorMessage: `No share URL configured for platform: ${platform}`,
+      });
     }
   }
 
@@ -418,6 +445,7 @@ class SocialShareButton {
 
           copyBtn.textContent = "Copied!";
           copyBtn.classList.add("copied");
+          this._emit("social_share_copy", "copy");
 
           if (this.options.onCopy) {
             this.options.onCopy(this.options.url);
@@ -458,6 +486,7 @@ class SocialShareButton {
 
       copyBtn.textContent = "Copied!";
       copyBtn.classList.add("copied");
+      this._emit("social_share_copy", "copy");
 
       if (this.options.onCopy) {
         this.options.onCopy(this.options.url);
@@ -651,6 +680,133 @@ class SocialShareButton {
       "mouseleave",
       this.customColorMouseLeaveHandler,
     );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Analytics event system
+  //
+  // The library is privacy-by-design: it never collects, stores, or transmits
+  // user data. _emit() only dispatches interaction events locally so that the
+  // host website can forward them to whichever analytics tool they choose.
+  //
+  // Three delivery paths run in parallel for maximum flexibility:
+  //   1. DOM CustomEvent  — works with CDN drops, vanilla JS, and any framework.
+  //                         Multiple independent listeners can subscribe with
+  //                         document.addEventListener('social-share', handler).
+  //   2. onAnalytics hook — single direct callback, useful for inline setups.
+  //   3. analyticsPlugins — adapter registry; each adapter's track() method is
+  //                         called in turn, allowing GA4 + Mixpanel + custom
+  //                         systems to all receive the same event simultaneously.
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Returns the host container element, or null when no container is configured.
+   * @returns {Element|null}
+   */
+  _getContainer() {
+    if (!this.options.container) return null;
+    if (typeof document === "undefined") return null;
+    return typeof this.options.container === "string"
+      ? document.querySelector(this.options.container)
+      : this.options.container;
+  }
+
+  /**
+   * Logs analytics warnings only when debug mode is enabled.
+   * @param {string} message - Description of the failed analytics path.
+   * @param {Error} err - The caught error instance.
+   */
+  _debugWarn(message, err) {
+    // _debugWarn: emit analytics warnings only in debug mode for visibility.
+    if (!this.options.debug) return;
+    // eslint-disable-next-line no-console
+    console.warn("[SocialShareButton Analytics]", message, err);
+  }
+
+  /**
+   * Emits an analytics event through all configured delivery paths.
+   *
+   * Standard payload schema
+   * ─────────────────────────────────────────────────────────────────────────
+   * {
+   *   eventName      : string   — e.g. 'social_share_click'
+   *   interactionType: string   — 'share' | 'copy' | 'popup_open' |
+   *                               'popup_close' | 'error'
+   *   platform       : string|null — 'twitter', 'facebook', etc.
+   *   url            : string   — URL being shared
+   *   title          : string   — page title
+   *   timestamp      : number   — Unix ms (Date.now())
+   *   componentId    : string|null — value of the componentId option
+   *   errorMessage   : string   — only present on social_share_error events
+   * }
+   *
+   * @param {string} eventName       - snake_case event identifier
+   * @param {string} interactionType - broad interaction category
+   * @param {Object} [extra]         - optional extra fields (platform, errorMessage)
+   */
+  _emit(eventName, interactionType, extra = {}) {
+    if (this.options.analytics === false) return;
+
+    const payload = {
+      version: ANALYTICS_SCHEMA_VERSION,
+      source: "social-share-button",
+      eventName,
+      interactionType,
+      platform: extra.platform || null,
+      url: this.options.url,
+      title: this.options.title,
+      timestamp: Date.now(),
+      componentId: this.options.componentId,
+    };
+
+    if (extra.errorMessage) {
+      payload.errorMessage = extra.errorMessage;
+    }
+
+    // Optional console output for development / debugging
+    if (this.options.debug) {
+      // eslint-disable-next-line no-console
+      console.log("[SocialShareButton Analytics]", payload);
+    }
+
+    // Path 1 — DOM CustomEvent (framework-agnostic, CDN-friendly)
+    // Bubbles from the container element so delegated listeners work naturally.
+    if (typeof window !== "undefined" && typeof CustomEvent !== "undefined") {
+      try {
+        const domEvent = new CustomEvent("social-share", {
+          bubbles: true,
+          cancelable: false,
+          composed: true, // crosses shadow-DOM boundaries; safe to set in all envs
+          detail: payload,
+        });
+        const el = this._getContainer();
+        (el || document).dispatchEvent(domEvent);
+      } catch (err) {
+        this._debugWarn("DOM event dispatch failed", err);
+      }
+    }
+
+    // Path 2 — onAnalytics callback (direct, single-consumer hook)
+    if (typeof this.options.onAnalytics === "function") {
+      try {
+        this.options.onAnalytics(payload);
+      } catch (err) {
+        this._debugWarn("onAnalytics callback failed", err);
+      }
+    }
+
+    // Path 3 — plugin / adapter registry (supports multiple simultaneous consumers)
+    if (Array.isArray(this.options.analyticsPlugins)) {
+      for (const plugin of this.options.analyticsPlugins) {
+        if (plugin && typeof plugin.track === "function") {
+          try {
+            plugin.track(payload);
+          } catch (err) {
+            this._debugWarn("plugin.track() failed", err);
+          }
+        }
+      }
+    }
   }
 }
 

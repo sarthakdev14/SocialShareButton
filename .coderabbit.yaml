@@ -278,3 +278,16 @@ reviews:
         - Proper @2x and @3x variants for different screen densities
         - SVG assets are optimized
         - Font files are licensed and optimized
+    
+    # Path-based review instructions for specific files/patterns
+    - path: "src/**/*.{js,jsx}"
+      instructions: |
+        Ensure newly added or modified methods and properties have brief inline comments:
+        
+        - Use minimal, concise inline comments (not JSDoc style)
+        - Add comments for logical blocks explaining what they do
+        - Add comments for edge cases and non-obvious logic (safety checks, race condition prevention, re-entrancy guards, cleanup callbacks, etc.)
+        - No need to document parameters or return values
+        - Not every function needs comments - only add where it aids understanding
+        
+        Flag any newly added or modified function or property that lacks descriptive inline comments for non-obvious logic or edge cases.
