@@ -6,7 +6,7 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
+  pull-requests: read
   issues: write
 
 jobs:
@@ -16,7 +16,7 @@ jobs:
     steps:
       - name: Get PR details
         id: pr-details
-        uses: actions/github-script@v7
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -27,14 +27,13 @@ jobs:
               base: pr.base.ref,
               head: pr.head.ref
             };
-            console.log('--- PR Details for Debugging ---');
-            console.log(JSON.stringify(details, null, 2));
+            core.info(`PR Details:\n${JSON.stringify(details, null, 2)}`);
             return details;
 
       # STEP 1: Issue-based labels
       - name: Extract linked issue number
         id: extract-issue
-        uses: actions/github-script@v7
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -61,11 +60,13 @@ jobs:
 
       - name: Apply issue-based labels
         if: steps.extract-issue.outputs.issue_number != ''
-        uses: actions/github-script@v7
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+        env:
+          ISSUE_NUMBER: ${{ steps.extract-issue.outputs.issue_number }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const issueNumber = '${{ steps.extract-issue.outputs.issue_number }}';
+            const issueNumber = process.env.ISSUE_NUMBER;
             const prNumber = context.payload.pull_request.number;
             
             try {
@@ -102,7 +103,10 @@ jobs:
                 });
                 console.log('Removed "no-issue-linked" label');
               } catch (error) {
-                // Ignore if label doesn't exist
+                if (error.status !== 404) {
+                  console.error(`Error removing no-issue-linked label: ${error.message}`);
+                  throw error;
+                }
               }
             } catch (error) {
               console.log(`Error fetching issue #${issueNumber}: ${error.message}`);
@@ -110,7 +114,7 @@ jobs:
 
       - name: Mark no issue linked
         if: steps.extract-issue.outputs.issue_number == ''
-        uses: actions/github-script@v7
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -119,17 +123,21 @@ jobs:
             console.log('No issue linked to this PR');
             
             // Add "no-issue-linked" label
-            await github.rest.issues.addLabels({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: prNumber,
-              labels: ['no-issue-linked']
-            });
+            try {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                labels: ['no-issue-linked']
+              });
+            } catch (error) {
+              console.error(`Error adding no-issue-linked label to PR #${prNumber}: ${error.message}`);
+            }
 
       # STEP 2: File-based labels
       - name: Get changed files
         id: changed-files
-        uses: actions/github-script@v7
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -148,7 +156,7 @@ jobs:
             return changedFiles;
 
       - name: Apply file-based labels
-        uses: actions/github-script@v7
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
         env:
           CHANGED_FILES: ${{ steps.changed-files.outputs.files }}
         with:
@@ -238,7 +246,7 @@ jobs:
 
       # STEP 3: PR size labels
       - name: Apply PR size label
-        uses: actions/github-script@v7
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -318,7 +326,7 @@ jobs:
 
       # STEP 4: Contributor-based labels(in this later we can add logic of team p as discussed on discord)
       - name: Apply contributor-based labels
-        uses: actions/github-script@v7
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
         env:
           LABELLER_TOKEN: ${{ secrets.EXTERNAL_LABELLER_TOKEN || secrets.GITHUB_TOKEN }}
         with:
@@ -363,9 +371,26 @@ jobs:
                 }
               }
               
+              const managedContributorLabels = ['org-Member', 'first-time-contributor', 'repeat-contributor'];
+              const labelsToRemove = managedContributorLabels.filter(label => !contributorLabels.includes(label));
+              
+              for (const label of labelsToRemove) {
+                try {
+                  await github.rest.issues.removeLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: prNumber,
+                    name: label
+                  });
+                } catch (error) {
+                  if (error.status !== 404) {
+                    console.error(`Error removing stale contributor label ${label}: ${error.message}`);
+                  }
+                }
+              }
+              
               if (contributorLabels.length > 0) {
                 console.log(`Applying contributor-based labels: ${contributorLabels.join(', ')}`);
-                
                 await github.rest.issues.addLabels({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
@@ -377,27 +402,27 @@ jobs:
               console.log(`Error applying contributor labels: ${error.message}`);
             }
 
-      # STEP 5: CodeRabbit review status
-      - name: Add pending CodeRabbit review label
+      # STEP 5: Review status
+      - name: Add needs review label
         if: github.event.action != 'edited'
-        uses: actions/github-script@v7
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const prNumber = context.payload.pull_request.number;
             
-            console.log('Adding pending-coderabbit-review label');
+            console.log('Adding needs-review label');
             
             await github.rest.issues.addLabels({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: prNumber,
-              labels: ['pending-coderabbit-review']
+              labels: ['needs-review']
             });
 
       # Summary step
       - name: Label sync summary
-        uses: actions/github-script@v7
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
