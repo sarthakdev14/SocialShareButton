@@ -41,14 +41,14 @@ forwards to whatever tool they choose.
 
 ## 2 — Core events catalogue
 
-| `eventName`                  | `interactionType` | Fires when                                      |
-| ---------------------------- | ----------------- | ----------------------------------------------- |
-| `social_share_popup_open`    | `popup_open`      | Share modal/popup opens                         |
-| `social_share_popup_close`   | `popup_close`     | Modal closes (button, overlay, or Esc key)      |
-| `social_share_click`         | `share`           | User clicks a platform button (share intent)    |
-| `social_share_success`       | `share`           | Platform share window opened successfully       |
-| `social_share_copy`          | `copy`            | User copies the link to clipboard               |
-| `social_share_error`         | `error`           | Share or copy action failed                     |
+| `eventName`                | `interactionType` | Fires when                                   |
+| -------------------------- | ----------------- | -------------------------------------------- |
+| `social_share_popup_open`  | `popup_open`      | Share modal/popup opens                      |
+| `social_share_popup_close` | `popup_close`     | Modal closes (button, overlay, or Esc key)   |
+| `social_share_click`       | `share`           | User clicks a platform button (share intent) |
+| `social_share_success`     | `share`           | Platform share window opened successfully    |
+| `social_share_copy`        | `copy`            | User copies the link to clipboard            |
+| `social_share_error`       | `error`           | Share or copy action failed                  |
 
 ---
 
@@ -97,10 +97,7 @@ const { GoogleAnalyticsAdapter, MixpanelAdapter } = window.SocialShareAnalytics;
 
 new SocialShareButton({
   container: "#share-button",
-  analyticsPlugins: [
-    new GoogleAnalyticsAdapter(),
-    new MixpanelAdapter(),
-  ],
+  analyticsPlugins: [new GoogleAnalyticsAdapter(), new MixpanelAdapter()],
 });
 ```
 
@@ -135,7 +132,7 @@ new SocialShareButton({
 Custom event category (optional):
 
 ```js
-new GoogleAnalyticsAdapter({ eventCategory: "engagement" })
+new GoogleAnalyticsAdapter({ eventCategory: "engagement" });
 ```
 
 ### Mixpanel

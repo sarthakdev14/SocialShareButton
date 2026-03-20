@@ -6,14 +6,7 @@ export default function SocialShareButton({
   description = "",
   hashtags = [],
   via = "",
-  platforms = [
-    "whatsapp",
-    "facebook",
-    "twitter",
-    "linkedin",
-    "telegram",
-    "reddit",
-  ],
+  platforms = ["whatsapp", "facebook", "twitter", "linkedin", "telegram", "reddit"],
   theme = "dark",
   buttonText = "Share",
   customClass = "",
@@ -34,10 +27,8 @@ export default function SocialShareButton({
   const shareButtonRef = useRef(null);
   const latestOptionsRef = useRef(null);
 
-  const resolvedUrl =
-    url || (typeof window !== "undefined" ? window.location.href : "");
-  const resolvedTitle =
-    title || (typeof document !== "undefined" ? document.title : "");
+  const resolvedUrl = url || (typeof window !== "undefined" ? window.location.href : "");
+  const resolvedTitle = title || (typeof document !== "undefined" ? document.title : "");
 
   // Keep latest props so delayed init doesn't use stale values.
   latestOptionsRef.current = {

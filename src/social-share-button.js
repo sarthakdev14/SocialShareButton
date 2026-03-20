@@ -10,24 +10,20 @@ const ANALYTICS_SCHEMA_VERSION = "1.0";
 class SocialShareButton {
   constructor(options = {}) {
     this.options = {
-      url:
-        options.url ||
-        (typeof window !== "undefined" ? window.location.href : ""),
-      title:
-        options.title ||
-        (typeof document !== "undefined" ? document.title : ""),
+      url: options.url || (typeof window !== "undefined" ? window.location.href : ""),
+      title: options.title || (typeof document !== "undefined" ? document.title : ""),
       description: options.description || "",
       hashtags: options.hashtags || [],
       via: options.via || "",
-          platforms: options.platforms || [
-            "whatsapp",
-            "facebook",
-            "twitter",
-            "linkedin",
-            "telegram",
-            "reddit",
-            "pinterest"
-          ],  
+      platforms: options.platforms || [
+        "whatsapp",
+        "facebook",
+        "twitter",
+        "linkedin",
+        "telegram",
+        "reddit",
+        "pinterest",
+      ],
       theme: options.theme || "dark",
       buttonText: options.buttonText || "Share",
       customClass: options.customClass || "",
@@ -56,13 +52,12 @@ class SocialShareButton {
     this.handleKeydown = null;
     this.listeners = []; // Central registry for all event listeners
 
-    this.openTimeout = null;  // Track setTimeout for openModal animation
+    this.openTimeout = null; // Track setTimeout for openModal animation
     this.closeTimeout = null; // Track setTimeout for closeModal animation
     this.feedbackTimeout = null; // Track setTimeout for copy feedback reset
     this.ownsBodyLock = false; // Track if this instance owns the body overflow lock
     this.eventsAttached = false; // Guard against multiple attachEvents() calls
     this.isDestroyed = false; // Track if instance has been destroyed (prevents async callbacks)
-
 
     if (this.options.container) {
       this.init();
@@ -169,13 +164,13 @@ class SocialShareButton {
       },
       email: {
         name: "Email",
-        color: '#7f7f7f',
-        icon: '<path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>'
+        color: "#7f7f7f",
+        icon: '<path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>',
       },
       pinterest: {
         name: "Pinterest",
-        color: '#E60023',
-        icon: '<path d="M12 0C5.372 0 0 5.373 0 12c0 4.99 3.052 9.267 7.386 11.059-.102-.94-.194-2.385.04-3.413.211-.904 1.356-5.752 1.356-5.752s-.346-.693-.346-1.717c0-1.608.932-2.808 2.093-2.808.987 0 1.463.741 1.463 1.63 0 .993-.632 2.476-.958 3.853-.273 1.155.58 2.098 1.718 2.098 2.062 0 3.646-2.174 3.646-5.31 0-2.778-1.997-4.722-4.847-4.722-3.304 0-5.242 2.478-5.242 5.039 0 .997.384 2.066.865 2.647.095.115.109.215.08.331-.088.365-.282 1.155-.321 1.316-.05.212-.165.257-.381.155-1.418-.66-2.305-2.733-2.305-4.397 0-3.579 2.601-6.867 7.497-6.867 3.936 0 6.998 2.805 6.998 6.557 0 3.91-2.466 7.058-5.892 7.058-1.15 0-2.232-.597-2.6-1.302l-.707 2.692c-.255.983-.946 2.215-1.408 2.966A12.002 12.002 0 0024 12C24 5.373 18.627 0 12 0z"/>'
+        color: "#E60023",
+        icon: '<path d="M12 0C5.372 0 0 5.373 0 12c0 4.99 3.052 9.267 7.386 11.059-.102-.94-.194-2.385.04-3.413.211-.904 1.356-5.752 1.356-5.752s-.346-.693-.346-1.717c0-1.608.932-2.808 2.093-2.808.987 0 1.463.741 1.463 1.63 0 .993-.632 2.476-.958 3.853-.273 1.155.58 2.098 1.718 2.098 2.062 0 3.646-2.174 3.646-5.31 0-2.778-1.997-4.722-4.847-4.722-3.304 0-5.242 2.478-5.242 5.039 0 .997.384 2.066.865 2.647.095.115.109.215.08.331-.088.365-.282 1.155-.321 1.316-.05.212-.165.257-.381.155-1.418-.66-2.305-2.733-2.305-4.397 0-3.579 2.601-6.867 7.497-6.867 3.936 0 6.998 2.805 6.998 6.557 0 3.91-2.466 7.058-5.892 7.058-1.15 0-2.232-.597-2.6-1.302l-.707 2.692c-.255.983-.946 2.215-1.408 2.966A12.002 12.002 0 0024 12C24 5.373 18.627 0 12 0z"/>',
       },
     };
 
@@ -203,8 +198,14 @@ class SocialShareButton {
     const hashtagString = hashtags.length ? "#" + hashtags.join(" #") : "";
 
     // Build platform-specific messages with customizable parameters
-    let whatsappMessage, facebookMessage, twitterMessage, telegramMessage, redditTitle, emailBody, pinterestText;
-    
+    let whatsappMessage,
+      facebookMessage,
+      twitterMessage,
+      telegramMessage,
+      redditTitle,
+      emailBody,
+      pinterestText;
+
     // WhatsApp: Casual with emoji
     whatsappMessage = `\u{1F680} ${title}${description ? "\n\n" + description : ""}${hashtagString ? "\n\n" + hashtagString : ""}\n\nLive on the site \u{1F440}\nClean UI, smooth flow \u{2014} worth peeking\n\u{1F447}`;
 
@@ -222,10 +223,10 @@ class SocialShareButton {
 
     // Email: Friendly greeting
     emailBody = `Hey \u{1F44B}\n\nSharing a clean project I came across:\n${title}${description ? "\n\n" + description : ""}\n\nLive, simple, and usable \u{2014} take a look \u{1F447}`;
-    
-   // Pinterest: Title + Description
-    pinterestText = `${title || ''}${description ? ' - ' + description : ''}`;
-    
+
+    // Pinterest: Title + Description
+    pinterestText = `${title || ""}${description ? " - " + description : ""}`;
+
     const encodedWhatsapp = encodeURIComponent(whatsappMessage);
     const encodedFacebook = encodeURIComponent(facebookMessage);
     const encodedTwitter = encodeURIComponent(twitterMessage);
@@ -288,9 +289,7 @@ class SocialShareButton {
     this.addEventListener(closeBtn, "click", closeBtnHandler);
 
     // Platform buttons
-    const platformBtns = this.modal.querySelectorAll(
-      ".social-share-platform-btn",
-    );
+    const platformBtns = this.modal.querySelectorAll(".social-share-platform-btn");
     platformBtns.forEach((btn) => {
       const platformHandler = () => {
         const platform = btn.dataset.platform;
@@ -316,7 +315,7 @@ class SocialShareButton {
       }
     };
     if (typeof document !== "undefined") {
-       document.addEventListener("keydown", this.handleKeydown);
+      document.addEventListener("keydown", this.handleKeydown);
     }
 
     this.eventsAttached = true; // Mark as attached
@@ -355,7 +354,8 @@ class SocialShareButton {
 
     // Animate in
     this.openTimeout = setTimeout(() => {
-      if (this.modal) { // Safety check in case destroy() was called
+      if (this.modal) {
+        // Safety check in case destroy() was called
         this.modal.classList.add("active");
       }
       this.openTimeout = null;
@@ -379,7 +379,8 @@ class SocialShareButton {
     }
 
     this.closeTimeout = setTimeout(() => {
-      if (this.modal) { // Safety check in case destroy() was called
+      if (this.modal) {
+        // Safety check in case destroy() was called
         this.isModalOpen = false;
         this.modal.style.display = "none";
 
@@ -411,11 +412,7 @@ class SocialShareButton {
       if (platform === "email") {
         window.location.href = shareUrl;
       } else {
-        window.open(
-          shareUrl,
-          "_blank",
-          "noopener,noreferrer,width=600,height=600",
-        );
+        window.open(shareUrl, "_blank", "noopener,noreferrer,width=600,height=600");
       }
 
       this._emit("social_share_success", "share", { platform });
@@ -465,7 +462,6 @@ class SocialShareButton {
           }, 2000);
         })
         .catch(() => {
-
           // Fallback to manual selection
           this.fallbackCopy(input, copyBtn);
         });
@@ -550,17 +546,11 @@ class SocialShareButton {
 
     // Remove custom color handlers
     if (this.button && this.customColorMouseEnterHandler) {
-      this.button.removeEventListener(
-        "mouseenter",
-        this.customColorMouseEnterHandler,
-      );
+      this.button.removeEventListener("mouseenter", this.customColorMouseEnterHandler);
       this.customColorMouseEnterHandler = null;
     }
     if (this.button && this.customColorMouseLeaveHandler) {
-      this.button.removeEventListener(
-        "mouseleave",
-        this.customColorMouseLeaveHandler,
-      );
+      this.button.removeEventListener("mouseleave", this.customColorMouseLeaveHandler);
       this.customColorMouseLeaveHandler = null;
     }
 
@@ -621,17 +611,11 @@ class SocialShareButton {
     }
 
     if (this.customColorMouseEnterHandler) {
-      this.button.removeEventListener(
-        "mouseenter",
-        this.customColorMouseEnterHandler,
-      );
+      this.button.removeEventListener("mouseenter", this.customColorMouseEnterHandler);
       this.customColorMouseEnterHandler = null;
     }
     if (this.customColorMouseLeaveHandler) {
-      this.button.removeEventListener(
-        "mouseleave",
-        this.customColorMouseLeaveHandler,
-      );
+      this.button.removeEventListener("mouseleave", this.customColorMouseLeaveHandler);
       this.customColorMouseLeaveHandler = null;
     }
 
@@ -672,14 +656,8 @@ class SocialShareButton {
 
     // Note: Custom color handlers are managed separately (not in listeners)
     // because they need to be removed/reapplied when colors change
-    this.button.addEventListener(
-      "mouseenter",
-      this.customColorMouseEnterHandler,
-    );
-    this.button.addEventListener(
-      "mouseleave",
-      this.customColorMouseLeaveHandler,
-    );
+    this.button.addEventListener("mouseenter", this.customColorMouseEnterHandler);
+    this.button.addEventListener("mouseleave", this.customColorMouseLeaveHandler);
   }
 
   // ---------------------------------------------------------------------------

@@ -2,7 +2,6 @@
 
 <div name="readme-top"></div>
 
-
 > ⚠️ **IMPORTANT**
 >
 > All project discussions happens on **[Discord](https://discord.com/channels/1022871757289422898/1479012884209078365)**.
@@ -86,7 +85,10 @@ Lightweight social sharing component for web applications. Zero dependencies, fr
 ### Via CDN (Recommended)
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/AOSSIE-Org/SocialShareButton@v1.0.3/src/social-share-button.css">
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/gh/AOSSIE-Org/SocialShareButton@v1.0.3/src/social-share-button.css"
+/>
 <script src="https://cdn.jsdelivr.net/gh/AOSSIE-Org/SocialShareButton@v1.0.3/src/social-share-button.js"></script>
 ```
 
@@ -101,11 +103,11 @@ Lightweight social sharing component for web applications. Zero dependencies, fr
 
 No matter which framework you use, integration always follows the same 3 steps:
 
-| Step | What to do | Where |
-|------|-----------|-------|
-| **1️⃣ Load Library** | Add CSS + JS (CDN links) | Global layout file — `index.html` / `layout.tsx` / `_document.tsx` |
-| **2️⃣ Add Container** | Place `<div id="share-button"></div>` | The UI component where you want the button to appear |
-| **3️⃣ Initialize** | Call `new SocialShareButton({ container: "#share-button" })` | Inside that component, after the DOM is ready (e.g. `useEffect`, `mounted`, `ngAfterViewInit`) |
+| Step                 | What to do                                                   | Where                                                                                          |
+| -------------------- | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| **1️⃣ Load Library**  | Add CSS + JS (CDN links)                                     | Global layout file — `index.html` / `layout.tsx` / `_document.tsx`                             |
+| **2️⃣ Add Container** | Place `<div id="share-button"></div>`                        | The UI component where you want the button to appear                                           |
+| **3️⃣ Initialize**    | Call `new SocialShareButton({ container: "#share-button" })` | Inside that component, after the DOM is ready (e.g. `useEffect`, `mounted`, `ngAfterViewInit`) |
 
 > 💡 Pick your framework below for the full copy-paste snippet:
 
@@ -186,11 +188,7 @@ function Header() {
 ```tsx
 import Script from "next/script";
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
@@ -231,8 +229,7 @@ export default function Header() {
 
   useEffect(() => {
     const initButton = () => {
-      if (initRef.current || !window.SocialShareButton || !containerRef.current)
-        return;
+      if (initRef.current || !window.SocialShareButton || !containerRef.current) return;
 
       shareButtonRef.current = new window.SocialShareButton({
         container: "#share-button",
@@ -338,8 +335,7 @@ export default function Header() {
 
   useEffect(() => {
     const initButton = () => {
-      if (initRef.current || !window.SocialShareButton || !containerRef.current)
-        return;
+      if (initRef.current || !window.SocialShareButton || !containerRef.current) return;
 
       shareButtonRef.current = new window.SocialShareButton({
         container: "#share-button",
@@ -432,7 +428,6 @@ new window.SocialShareButton({
 
 </details>
 
-
 <details>
 <summary><b>⚛️ Preact</b></summary>
 
@@ -466,8 +461,7 @@ export default function Header() {
   const initRef = useRef(false);
 
   useEffect(() => {
-    if (initRef.current || !window.SocialShareButton || !containerRef.current)
-      return;
+    if (initRef.current || !window.SocialShareButton || !containerRef.current) return;
 
     shareButtonRef.current = new window.SocialShareButton({
       container: "#share-button",

@@ -21,8 +21,9 @@ export default [
     },
     rules: {
       "no-console": "error",
-      "no-unused-vars": ["warn", { "caughtErrorsIgnorePattern": "^_" }],
-      "semi": ["error", "always"],
+      "no-unused-vars": ["warn", { caughtErrorsIgnorePattern: "^_" }],
+      quotes: ["error", "double", { avoidEscape: true }],
+      semi: ["error", "always"],
     },
   },
   {

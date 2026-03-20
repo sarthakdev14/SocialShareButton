@@ -25,11 +25,11 @@ You are helping a developer integrate the **SocialShareButton** library
 
 The README defines **3 installation methods**. Ask (or infer) which the developer wants:
 
-| Method | When to use |
-|--------|-------------|
-| **Method 1 — CDN (Recommended)** | Most projects. No build step needed. Load via `<script>` tag. |
-| **Method 2 — npm** | Bundler-based projects (Webpack, Vite, etc.) that prefer `import` syntax. |
-| **Method 3 — React Wrapper Component (Optional)** | Developer explicitly wants a reusable JSX component. |
+| Method                                            | When to use                                                               |
+| ------------------------------------------------- | ------------------------------------------------------------------------- |
+| **Method 1 — CDN (Recommended)**                  | Most projects. No build step needed. Load via `<script>` tag.             |
+| **Method 2 — npm**                                | Bundler-based projects (Webpack, Vite, etc.) that prefer `import` syntax. |
+| **Method 3 — React Wrapper Component (Optional)** | Developer explicitly wants a reusable JSX component.                      |
 
 These are **loading methods**, not tech stacks. CDN and npm both work with all frameworks.
 
@@ -39,11 +39,11 @@ These are **loading methods**, not tech stacks. CDN and npm both work with all f
 
 No matter which framework you use, integration always follows the same 3 steps:
 
-| Step | What to do | Where |
-|------|-----------|-------|
-| **1️⃣ Load Library** | Add CSS + JS (CDN links) | Global layout file — `index.html` / `layout.tsx` / `_document.tsx` |
-| **2️⃣ Add Container** | Place `<div id="share-button"></div>` | The UI component where you want the button to appear |
-| **3️⃣ Initialize** | Call `new SocialShareButton({ container: "#share-button" })` | Inside that component, after the DOM is ready (e.g. `useEffect`, `mounted`, `ngAfterViewInit`) |
+| Step                 | What to do                                                   | Where                                                                                          |
+| -------------------- | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| **1️⃣ Load Library**  | Add CSS + JS (CDN links)                                     | Global layout file — `index.html` / `layout.tsx` / `_document.tsx`                             |
+| **2️⃣ Add Container** | Place `<div id="share-button"></div>`                        | The UI component where you want the button to appear                                           |
+| **3️⃣ Initialize**    | Call `new SocialShareButton({ container: "#share-button" })` | Inside that component, after the DOM is ready (e.g. `useEffect`, `mounted`, `ngAfterViewInit`) |
 
 ---
 
@@ -66,7 +66,10 @@ No framework. Just add the CDN tags directly:
 
 ```html
 <head>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/AOSSIE-Org/SocialShareButton@v1.0.3/src/social-share-button.css" />
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/gh/AOSSIE-Org/SocialShareButton@v1.0.3/src/social-share-button.css"
+  />
 </head>
 <body>
   <div id="share-button"></div>
@@ -152,11 +155,7 @@ function Header() {
 ```tsx
 import Script from "next/script";
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
@@ -195,8 +194,7 @@ export default function Header() {
 
   useEffect(() => {
     const initButton = () => {
-      if (initRef.current || !window.SocialShareButton || !containerRef.current)
-        return;
+      if (initRef.current || !window.SocialShareButton || !containerRef.current) return;
 
       shareButtonRef.current = new window.SocialShareButton({
         container: "#share-button",
@@ -299,8 +297,7 @@ export default function Header() {
 
   useEffect(() => {
     const initButton = () => {
-      if (initRef.current || !window.SocialShareButton || !containerRef.current)
-        return;
+      if (initRef.current || !window.SocialShareButton || !containerRef.current) return;
 
       shareButtonRef.current = new window.SocialShareButton({
         container: "#share-button",
@@ -395,7 +392,7 @@ new window.SocialShareButton({
 Use when the project has a bundler (Webpack, Vite, etc.) and the developer prefers `import` syntax. Works in any framework.
 
 ```javascript
-import SocialShareButton from "social-share-button-aossie"; 
+import SocialShareButton from "social-share-button-aossie";
 import "social-share-button-aossie/src/social-share-button.css";
 
 new SocialShareButton({ container: "#share-button" });
@@ -423,30 +420,30 @@ function App() {
 
 ## All constructor options
 
-| Option             | Type           | Default                | Description                                        |
-| ------------------ | -------------- | ---------------------- | -------------------------------------------------- |
-| `container`        | string/Element | —                      | **Required.** CSS selector or DOM element          |
-| `url`              | string         | `window.location.href` | URL to share                                       |
-| `title`            | string         | `document.title`       | Share title/headline                               |
-| `description`      | string         | `''`                   | Additional description text                        |
-| `hashtags`         | array          | `[]`                   | e.g. `['js', 'webdev']`                            |
-| `via`              | string         | `''`                   | Twitter handle (without @)                         |
+| Option             | Type           | Default                | Description                                                |
+| ------------------ | -------------- | ---------------------- | ---------------------------------------------------------- |
+| `container`        | string/Element | —                      | **Required.** CSS selector or DOM element                  |
+| `url`              | string         | `window.location.href` | URL to share                                               |
+| `title`            | string         | `document.title`       | Share title/headline                                       |
+| `description`      | string         | `''`                   | Additional description text                                |
+| `hashtags`         | array          | `[]`                   | e.g. `['js', 'webdev']`                                    |
+| `via`              | string         | `''`                   | Twitter handle (without @)                                 |
 | `platforms`        | array          | All platforms          | `whatsapp facebook twitter linkedin telegram reddit email` |
-| `buttonText`       | string         | `'Share'`              | Button label text                                  |
-| `buttonStyle`      | string         | `'default'`            | `default` `primary` `compact` `icon-only`          |
-| `buttonColor`      | string         | `''`                   | Custom button background color                     |
-| `buttonHoverColor` | string         | `''`                   | Custom button hover color                          |
-| `customClass`      | string         | `''`                   | Additional CSS class for button                    |
-| `theme`            | string         | `'dark'`               | `dark` or `light`                                  |
-| `modalPosition`    | string         | `'center'`             | Modal position on screen                           |
-| `showButton`       | boolean        | `true`                 | Show/hide the share button                         |
-| `onShare`          | function       | `null`                 | `(platform, url) => void`                          |
-| `onCopy`           | function       | `null`                 | `(url) => void`                                    |
-| `analytics`        | boolean        | `true`                 | Set `false` to disable all event emission          |
-| `onAnalytics`      | function       | `null`                 | `(payload) => void` — direct analytics hook        |
-| `analyticsPlugins` | array          | `[]`                   | Adapter instances from `social-share-analytics.js` |
-| `componentId`      | string         | `null`                 | Label this instance for analytics tracking         |
-| `debug`            | boolean        | `false`                | Log analytics events to console                    |
+| `buttonText`       | string         | `'Share'`              | Button label text                                          |
+| `buttonStyle`      | string         | `'default'`            | `default` `primary` `compact` `icon-only`                  |
+| `buttonColor`      | string         | `''`                   | Custom button background color                             |
+| `buttonHoverColor` | string         | `''`                   | Custom button hover color                                  |
+| `customClass`      | string         | `''`                   | Additional CSS class for button                            |
+| `theme`            | string         | `'dark'`               | `dark` or `light`                                          |
+| `modalPosition`    | string         | `'center'`             | Modal position on screen                                   |
+| `showButton`       | boolean        | `true`                 | Show/hide the share button                                 |
+| `onShare`          | function       | `null`                 | `(platform, url) => void`                                  |
+| `onCopy`           | function       | `null`                 | `(url) => void`                                            |
+| `analytics`        | boolean        | `true`                 | Set `false` to disable all event emission                  |
+| `onAnalytics`      | function       | `null`                 | `(payload) => void` — direct analytics hook                |
+| `analyticsPlugins` | array          | `[]`                   | Adapter instances from `social-share-analytics.js`         |
+| `componentId`      | string         | `null`                 | Label this instance for analytics tracking                 |
+| `debug`            | boolean        | `false`                | Log analytics events to console                            |
 
 ---
 
@@ -487,25 +484,25 @@ useEffect(() => {
 
 ## Troubleshooting
 
-| Symptom | Cause | Fix |
-|---------|-------|-----|
-| Multiple buttons appearing | Component re-renders creating duplicate instances | Use `useRef` + `initRef` guard (shown in all examples above) |
-| Button not appearing | Script loads after component renders | Add `if (window.SocialShareButton)` null check |
-| Modal not opening | CSS not loaded or ID mismatch | Verify CSS CDN in `<head>`; match `container: '#share-button'` with `<div id="share-button">` |
-| `TypeError: SocialShareButton is not a constructor` | CDN script not loaded yet | Use interval polling (see Next.js examples above) |
-| URL not updating on navigation | Component initialized once, doesn't track routes | Use `updateOptions()` on route change |
+| Symptom                                             | Cause                                             | Fix                                                                                           |
+| --------------------------------------------------- | ------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Multiple buttons appearing                          | Component re-renders creating duplicate instances | Use `useRef` + `initRef` guard (shown in all examples above)                                  |
+| Button not appearing                                | Script loads after component renders              | Add `if (window.SocialShareButton)` null check                                                |
+| Modal not opening                                   | CSS not loaded or ID mismatch                     | Verify CSS CDN in `<head>`; match `container: '#share-button'` with `<div id="share-button">` |
+| `TypeError: SocialShareButton is not a constructor` | CDN script not loaded yet                         | Use interval polling (see Next.js examples above)                                             |
+| URL not updating on navigation                      | Component initialized once, doesn't track routes  | Use `updateOptions()` on route change                                                         |
 
 ---
 
 ## Common mistakes to prevent
 
-| ❌ Wrong | ✅ Correct |
-|---------|-----------|
-| Creating `ShareButton.jsx` / `ShareButton.tsx` | Add directly to existing `Header.jsx`, `Navbar.tsx`, etc. |
-| Calling `new SocialShareButton()` inside JSX `return` | Call only inside `useEffect` / lifecycle hook |
-| Not calling `destroy()` on unmount | Always clean up — prevents duplicate modals on re-mount |
-| Mismatched container ID | `container: '#share-button'` must exactly match `<div id="share-button">` |
-| Script loads after component renders in Next.js | Use `strategy="beforeInteractive"` **or** poll with `setInterval` |
+| ❌ Wrong                                              | ✅ Correct                                                                |
+| ----------------------------------------------------- | ------------------------------------------------------------------------- |
+| Creating `ShareButton.jsx` / `ShareButton.tsx`        | Add directly to existing `Header.jsx`, `Navbar.tsx`, etc.                 |
+| Calling `new SocialShareButton()` inside JSX `return` | Call only inside `useEffect` / lifecycle hook                             |
+| Not calling `destroy()` on unmount                    | Always clean up — prevents duplicate modals on re-mount                   |
+| Mismatched container ID                               | `container: '#share-button'` must exactly match `<div id="share-button">` |
+| Script loads after component renders in Next.js       | Use `strategy="beforeInteractive"` **or** poll with `setInterval`         |
 
 ---
 
@@ -516,4 +513,3 @@ useEffect(() => {
 - Always modify **existing** files — never suggest creating new component files.
 - When modifying an existing file, mark additions with `// ADD THIS`.
 - Do not add abstractions, wrappers, or extra files beyond what the README shows.
-
