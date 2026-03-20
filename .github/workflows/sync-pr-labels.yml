@@ -21,12 +21,15 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const pr = context.payload.pull_request;
-            return {
+            const details = {
               number: pr.number,
               body: pr.body || '',
               base: pr.base.ref,
               head: pr.head.ref
             };
+            console.log('--- PR Details for Debugging ---');
+            console.log(JSON.stringify(details, null, 2));
+            return details;
 
       # STEP 1: Issue-based labels
       - name: Extract linked issue number
