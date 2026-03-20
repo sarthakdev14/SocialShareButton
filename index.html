@@ -514,7 +514,7 @@
       </p>
     </footer>
 
-    <script src="src/social-share-button.js"></script>
+    <script src="src/social-share-button.js" defer></script>
     <script>
       // Wait for DOM to be ready
       document.addEventListener("DOMContentLoaded", function () {
@@ -668,20 +668,38 @@
           button.addEventListener("click", () => {
             const codeBlock = button.closest(".code-block")?.querySelector("code");
             const text = codeBlock ? codeBlock.innerText : "";
+            const originalText = button.textContent;
+
+            const statusSpan = button.nextElementSibling;
+
+            if (button.copyResetTimer) {
+              clearTimeout(button.copyResetTimer);
+            }
 
             navigator.clipboard.writeText(text).then(() => {
-              const originalText = button.textContent;
-
-              // Find aria-live span
-              const statusSpan = button.nextElementSibling;
-
               if (statusSpan && statusSpan.classList.contains("copy-status")) {
                 statusSpan.textContent = "Code copied to clipboard";
               }
 
               button.textContent = "Copied!";
 
-              setTimeout(() => {
+              button.copyResetTimer = setTimeout(() => {
+                button.textContent = originalText;
+
+                if (statusSpan && statusSpan.classList.contains("copy-status")) {
+                  statusSpan.textContent = "";
+                }
+              }, 2000);
+            }).catch((error) => {
+              console.error("Failed to copy to clipboard", error);
+
+              button.textContent = originalText;
+
+              if (statusSpan && statusSpan.classList.contains("copy-status")) {
+                statusSpan.textContent = "Failed to copy to clipboard";
+              }
+
+              button.copyResetTimer = setTimeout(() => {
                 button.textContent = originalText;
 
                 if (statusSpan && statusSpan.classList.contains("copy-status")) {
