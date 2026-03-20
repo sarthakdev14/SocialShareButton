@@ -233,12 +233,16 @@ jobs:
             if (labelsToAdd.length > 0) {
               console.log(`Applying file-based labels: ${labelsToAdd.join(', ')}`);
               
-              await github.rest.issues.addLabels({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: prNumber,
-                labels: labelsToAdd
-              });
+              try {
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNumber,
+                  labels: labelsToAdd
+                });
+              } catch (error) {
+                console.error(`Error adding file-based labels [${labelsToAdd.join(', ')}] to PR #${prNumber}: ${error.message}`);
+              }
             } else {
               if (fileLabels.length > 0) console.log('All matched file-based labels are already present');
               else console.log('No file-based labels matched');
@@ -317,12 +321,16 @@ jobs:
             
             // Apply the new size label
             console.log(`Applying new size label: ${sizeLabel}`);
-            await github.rest.issues.addLabels({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: prNumber,
-              labels: [sizeLabel]
-            });
+            try {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                labels: [sizeLabel]
+              });
+            } catch (error) {
+              console.error(`Error adding size label ${sizeLabel} to PR #${prNumber}: ${error.message}`);
+            }
 
       # STEP 4: Contributor-based labels(in this later we can add logic of team p as discussed on discord)
       - name: Apply contributor-based labels
@@ -413,12 +421,16 @@ jobs:
             
             console.log('Adding needs-review label');
             
-            await github.rest.issues.addLabels({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: prNumber,
-              labels: ['needs-review']
-            });
+            try {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                labels: ['needs-review']
+              });
+            } catch (error) {
+              core.warning(`Error adding needs-review label to PR #${prNumber}: ${error.message}`);
+            }
 
       # Summary step
       - name: Label sync summary
