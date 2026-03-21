@@ -7,12 +7,6 @@ import { useEffect, useRef } from "preact/hooks";
  * SocialShareButton vanilla JS library. Handles lifecycle, dynamic updates,
  * and browser-only initialization.
  *
- * @param {Object} props - Component props
- * @param {string} props.url - URL to share
- * @param {string} props.title - Title of the content
- * @param {string} props.description - Description for sharing
- * @param {Array<string>} props.platforms - Platforms to display
- * @param {boolean} props.analytics - Enable analytics events
  */
 
 export default function SocialShareButton({
