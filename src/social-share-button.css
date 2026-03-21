@@ -1,9 +1,13 @@
 /**
  * SocialShareButton Styles
- * Modern, responsive, and customizable social sharing component
+ * 
+ * Modern, responsive, and customizable social sharing component.
+ * Uses CSS variables and flexbox for maximum layout flexibility.
  */
 
-/* Button Styles */
+/* -----------------------------------------------------------------------------
+   TRIGGER BUTTON STYLES
+   ----------------------------------------------------------------------------- */
 
 .social-share-btn {
   display: inline-flex;
@@ -18,8 +22,7 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   outline: none;
 }
 
@@ -34,6 +37,7 @@
   transform: translateY(0);
 }
 
+/* Icon animation within the trigger button */
 .social-share-btn .share-icon {
   transition: transform 0.3s ease;
 }
@@ -42,7 +46,11 @@
   transform: scale(1.1);
 }
 
-/* Button Variants */
+/* -----------------------------------------------------------------------------
+   BUTTON VARIANTS
+   ----------------------------------------------------------------------------- */
+
+/* Primary: Colorful gradient style */
 .social-share-btn.primary {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border: none;
@@ -52,6 +60,7 @@
   background: linear-gradient(135deg, #7c8ff0 0%, #8a5bb5 100%);
 }
 
+/* Light: Clean white style for dark backgrounds */
 .social-share-btn.light {
   background: #fff;
   color: #333;
@@ -63,11 +72,13 @@
   border-color: #ccc;
 }
 
+/* Compact: Smaller padding and font for tight spaces */
 .social-share-btn.compact {
   padding: 8px 12px;
   font-size: 13px;
 }
 
+/* Icon-only: Circular style for minimalist UIs */
 .social-share-btn.icon-only {
   padding: 10px;
   border-radius: 50%;
@@ -77,13 +88,13 @@
   display: none;
 }
 
-/* Modal Overlay */
+/* -----------------------------------------------------------------------------
+   MODAL OVERLAY (BACKDROP)
+   ----------------------------------------------------------------------------- */
+
 .social-share-modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   background-color: rgba(0, 0, 0, 0.8);
   display: flex;
   align-items: center;
@@ -93,11 +104,15 @@
   transition: opacity 0.2s ease-in-out;
 }
 
+/* Active state for entry animation */
 .social-share-modal-overlay.active {
   opacity: 1;
 }
 
-/* Modal Content */
+/* -----------------------------------------------------------------------------
+   MODAL CONTENT CONTAINER
+   ----------------------------------------------------------------------------- */
+
 .social-share-modal-content {
   background: #282828;
   border-radius: 12px;
@@ -116,6 +131,7 @@
   opacity: 1;
 }
 
+/* Position Variants */
 .social-share-modal-content.center {
   align-self: center;
 }
@@ -126,13 +142,16 @@
   border-bottom-right-radius: 0;
 }
 
-/* Light Theme */
+/* Modal Light Theme Overrides */
 .social-share-modal-overlay.light .social-share-modal-content {
   background: #ffffff;
   color: #333;
 }
 
-/* Header */
+/* -----------------------------------------------------------------------------
+   MODAL HEADER
+   ----------------------------------------------------------------------------- */
+
 .social-share-modal-header {
   display: flex;
   align-items: center;
@@ -177,12 +196,10 @@
   color: #fff;
 }
 
-.social-share-modal-overlay.light .social-share-modal-close:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-  color: #333;
-}
+/* -----------------------------------------------------------------------------
+   PLATFORMS LIST
+   ----------------------------------------------------------------------------- */
 
-/* Platforms Container */
 .social-share-platforms {
   display: flex;
   gap: 12px;
@@ -192,25 +209,15 @@
   scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
 }
 
-.social-share-platforms::-webkit-scrollbar {
-  height: 6px;
-}
-
-.social-share-platforms::-webkit-scrollbar-track {
-  background: transparent;
-  border-radius: 3px;
-}
-
+/* Custom Scrollbar for Platforms List */
+.social-share-platforms::-webkit-scrollbar { height: 6px; }
+.social-share-platforms::-webkit-scrollbar-track { background: transparent; }
 .social-share-platforms::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.3);
   border-radius: 3px;
 }
 
-.social-share-platforms::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.4);
-}
-
-/* Platform Button */
+/* Individual Platform Button */
 .social-share-platform-btn {
   display: flex;
   flex-direction: column;
@@ -225,17 +232,10 @@
   outline: none;
 }
 
-.social-share-platform-btn:hover {
-  transform: scale(1.05);
-}
-
-.social-share-platform-btn:active {
-  transform: scale(0.95);
-}
+.social-share-platform-btn:hover { transform: scale(1.05); }
 
 .social-share-platform-icon {
-  width: 56px;
-  height: 56px;
+  width: 56px; height: 56px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -244,31 +244,18 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-.social-share-platform-btn:hover .social-share-platform-icon {
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-}
-
-.social-share-platform-icon svg {
-  width: 28px;
-  height: 28px;
-}
+.social-share-platform-icon svg { width: 28px; height: 28px; }
 
 .social-share-platform-btn span {
   font-size: 12px;
   color: #fff;
   font-weight: 500;
-  text-align: center;
-  max-width: 80px;
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
 
-.social-share-modal-overlay.light .social-share-platform-btn span {
-  color: #333;
-}
+/* -----------------------------------------------------------------------------
+   URL / COPY LINK CONTAINER
+   ----------------------------------------------------------------------------- */
 
-/* Link Container */
 .social-share-link-container {
   padding: 16px 24px 24px;
   display: flex;
@@ -284,11 +271,6 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.social-share-modal-overlay.light .social-share-link-input {
-  background: rgba(0, 0, 0, 0.03);
-  border-color: rgba(0, 0, 0, 0.1);
-}
-
 .social-share-link-input input {
   width: 100%;
   background: none;
@@ -296,17 +278,6 @@
   color: #3ea6ff;
   font-size: 14px;
   outline: none;
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-}
-
-.social-share-modal-overlay.light .social-share-link-input input {
-  color: #1877f2;
-}
-
-.social-share-link-input input::selection {
-  background: #3ea6ff;
-  color: #fff;
 }
 
 .social-share-copy-btn {
@@ -314,36 +285,26 @@
   border: none;
   color: #fff;
   font-weight: 600;
-  font-size: 14px;
   padding: 12px 24px;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
   min-width: 80px;
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  outline: none;
 }
 
 .social-share-copy-btn:hover {
   background: #4db8ff;
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(62, 166, 255, 0.3);
-}
-
-.social-share-copy-btn:active {
-  transform: scale(0.95);
 }
 
 .social-share-copy-btn.copied {
   background: #00a650;
 }
 
-.social-share-copy-btn.copied:hover {
-  background: #00b857;
-}
+/* -----------------------------------------------------------------------------
+   RESPONSIVE OVERRIDES
+   ----------------------------------------------------------------------------- */
 
-/* Responsive Design */
 @media (max-width: 600px) {
   .social-share-modal-content {
     width: 100%;
@@ -352,35 +313,8 @@
     border-radius: 12px 12px 0 0;
   }
 
-  .social-share-modal-content.bottom {
-    margin-top: auto;
-  }
-
-  .social-share-modal-header {
-    padding: 12px 16px;
-  }
-
-  .social-share-modal-header h3 {
-    font-size: 18px;
-  }
-
-  .social-share-platforms {
-    padding: 16px;
-  }
-
-  .social-share-platform-btn {
-    min-width: 70px;
-  }
-
-  .social-share-platform-icon {
-    width: 48px;
-    height: 48px;
-  }
-
-  .social-share-platform-icon svg {
-    width: 24px;
-    height: 24px;
-  }
+  /* Snap modal to bottom on mobile */
+  .social-share-modal-content.bottom { margin-top: auto; }
 
   .social-share-link-container {
     flex-direction: column;
@@ -388,31 +322,13 @@
     gap: 8px;
   }
 
-  .social-share-link-input {
-    width: 100%;
-  }
-
-  .social-share-copy-btn {
-    width: 100%;
-  }
-
-  .social-share-btn {
-    padding: 8px 16px;
-    font-size: 13px;
-  }
+  .social-share-link-input, .social-share-copy-btn { width: 100%; }
 }
 
-/* Dark theme default */
-.social-share-modal-overlay.dark .social-share-modal-content {
-  background: #282828;
-}
+/* -----------------------------------------------------------------------------
+   ACCESSIBILITY & PRINT
+   ----------------------------------------------------------------------------- */
 
-.social-share-modal-overlay.dark .social-share-modal-header h3,
-.social-share-modal-overlay.dark .social-share-platform-btn span {
-  color: #fff;
-}
-
-/* Accessibility */
 .social-share-btn:focus-visible,
 .social-share-modal-close:focus-visible,
 .social-share-platform-btn:focus-visible,
@@ -421,10 +337,7 @@
   outline-offset: 2px;
 }
 
-/* Print Styles */
 @media print {
   .social-share-btn,
-  .social-share-modal-overlay {
-    display: none !important;
-  }
+  .social-share-modal-overlay { display: none !important; }
 }

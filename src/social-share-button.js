@@ -9,12 +9,14 @@ const ANALYTICS_SCHEMA_VERSION = "1.0";
 
 class SocialShareButton {
   constructor(options = {}) {
+    // Default configuration for the share button - provides sensible fallbacks for all options
     this.options = {
+      // Use provided URL/Title or fallback to browser defaults if available
       url: options.url || (typeof window !== "undefined" ? window.location.href : ""),
       title: options.title || (typeof document !== "undefined" ? document.title : ""),
       description: options.description || "",
       hashtags: options.hashtags || [],
-      via: options.via || "",
+      via: options.via || "", // Twitter/X 'via' handle
       platforms: options.platforms || [
         "whatsapp",
         "facebook",
@@ -24,55 +26,72 @@ class SocialShareButton {
         "reddit",
         "pinterest",
       ],
-      theme: options.theme || "dark",
+      theme: options.theme || "dark", // 'light' or 'dark' UI
       buttonText: options.buttonText || "Share",
       customClass: options.customClass || "",
-      buttonColor: options.buttonColor || "",
-      buttonHoverColor: options.buttonHoverColor || "",
-      onShare: options.onShare || null,
-      onCopy: options.onCopy || null,
-      container: options.container || null,
-      showButton: options.showButton !== false,
-      buttonStyle: options.buttonStyle || "default",
-      modalPosition: options.modalPosition || "center",
-      // Analytics — the library emits events but never collects or sends data itself.
-      // Website owners wire up their own analytics tools via these options.
-      analytics: options.analytics !== false, // set to false to disable all event emission
+      buttonColor: options.buttonColor || "", // Custom hex/CSS color for the trigger button
+      buttonHoverColor: options.buttonHoverColor || "", // Custom hover hex/CSS color
+      onShare: options.onShare || null, // Callback fired when a platform is clicked
+      onCopy: options.onCopy || null, // Callback fired when the link is copied
+      container: options.container || null, // Target element to inject the button into
+      showButton: options.showButton !== false, // Whether to render the main trigger button
+      buttonStyle: options.buttonStyle || "default", // CSS style variant for the button
+      modalPosition: options.modalPosition || "center", // Where the share modal appears
+      
+      // Analytics configuration — the library emits events but never collects or sends data itself.
+      // Host websites can connect their own tools (GA4, Mixpanel, etc.) via these hooks.
+      analytics: options.analytics !== false, // Set to false to disable all event emission
       onAnalytics: options.onAnalytics || null, // callback: (payload) => void
-      analyticsPlugins: options.analyticsPlugins || [], // array of { track(payload) } adapters
-      componentId: options.componentId || null, // optional identifier for this instance
-      debug: options.debug || false, // log emitted events to console in development
+      analyticsPlugins: options.analyticsPlugins || [], // Array of { track(payload) } adapters
+      componentId: options.componentId || null, // Optional unique identifier for this instance
+      debug: options.debug || false, // Log emitted events to console for development
     };
 
-    this.isModalOpen = false;
-    this.modal = null;
-    this.button = null;
+    // Internal state management
+    this.isModalOpen = false; // Tracks current UI visibility
+    this.modal = null; // Reference to the generated modal overlay DOM
+    this.button = null; // Reference to the generated trigger button DOM
+    
+    // Store handler references for later cleanup (prevents memory leaks)
     this.customColorMouseEnterHandler = null;
     this.customColorMouseLeaveHandler = null;
     this.handleKeydown = null;
-    this.listeners = []; // Central registry for all event listeners
+    this.listeners = []; // Central registry for all event listeners used by this instance
 
-    this.openTimeout = null; // Track setTimeout for openModal animation
-    this.closeTimeout = null; // Track setTimeout for closeModal animation
-    this.feedbackTimeout = null; // Track setTimeout for copy feedback reset
-    this.ownsBodyLock = false; // Track if this instance owns the body overflow lock
-    this.eventsAttached = false; // Guard against multiple attachEvents() calls
-    this.isDestroyed = false; // Track if instance has been destroyed (prevents async callbacks)
+    // Timer management for CSS animations and user feedback
+    this.openTimeout = null; // Tracks setTimeout for openModal opacity animation
+    this.closeTimeout = null; // Tracks setTimeout for closeModal removal from view
+    this.feedbackTimeout = null; // Tracks setTimeout for the 'Copied!' button text reset
+    
+    // Shared resource management
+    this.ownsBodyLock = false; // Tracks if this specific instance is currently locking body scroll
+    this.eventsAttached = false; // Guard against multiple attachEvents() calls on same element
+    this.isDestroyed = false; // Guard to prevent callbacks from firing after instance is destroyed
 
+    // Automatically initialize if a container element is provided during construction
     if (this.options.container) {
       this.init();
     }
   }
 
+  // Orchestrate the initial setup of the component DOM and event bindings
   init() {
+    // 1. Create and inject the trigger button if enabled
     if (this.options.showButton) {
       this.createButton();
     }
+    
+    // 2. Build the hidden modal structure and append to document body
     this.createModal();
+    
+    // 3. Bind all interaction listeners (click, escape key, etc.)
     this.attachEvents();
+    
+    // 4. Apply any custom styling provided via options
     this.applyCustomColors();
   }
 
+  // Create the main trigger button
   createButton() {
     const button = document.createElement("button");
     button.className = `social-share-btn ${this.options.buttonStyle} ${this.options.customClass}`;
@@ -97,6 +116,7 @@ class SocialShareButton {
     }
   }
 
+  // Create the share modal popup
   createModal() {
     const modal = document.createElement("div");
     modal.className = `social-share-modal-overlay ${this.options.theme}`;
@@ -130,7 +150,9 @@ class SocialShareButton {
     document.body.appendChild(modal);
   }
 
+  // Generate HTML for platform buttons
   getPlatformsHTML() {
+    // Dictionary of supported sharing platforms with their branding
     const platforms = {
       whatsapp: {
         name: "WhatsApp",
@@ -174,6 +196,7 @@ class SocialShareButton {
       },
     };
 
+    // Filter and map platforms to HTML button elements
     return this.options.platforms
       .filter((platform) => platforms[platform])
       .map((platform) => {
@@ -190,14 +213,18 @@ class SocialShareButton {
       .join("");
   }
 
+  // Construct platform-specific share URLs with correctly encoded parameters
   getShareURL(platform) {
     const { url, title, description, hashtags, via } = this.options;
+    
+    // Pre-encode common components to avoid double-encoding issues
     const encodedUrl = encodeURIComponent(url);
     const encodedTitle = encodeURIComponent(title);
-    // const encodedDesc = encodeURIComponent(description);
+    
+    // Format hashtags into a single string (e.g., "#tag1 #tag2")
     const hashtagString = hashtags.length ? "#" + hashtags.join(" #") : "";
 
-    // Build platform-specific messages with customizable parameters
+    // Build platform-specific messages - these provide a better user experience than just a raw URL
     let whatsappMessage,
       facebookMessage,
       twitterMessage,
@@ -206,38 +233,39 @@ class SocialShareButton {
       emailBody,
       pinterestText;
 
-    // WhatsApp: Casual with emoji
+    // WhatsApp: Uses emojis and line breaks for a friendly chat feel
     whatsappMessage = `\u{1F680} ${title}${description ? "\n\n" + description : ""}${hashtagString ? "\n\n" + hashtagString : ""}\n\nLive on the site \u{1F440}\nClean UI, smooth flow \u{2014} worth peeking\n\u{1F447}`;
-
-    // Facebook: Title + Description
+    
+    // Facebook: Standard title + description + hashtags
     facebookMessage = `${title}${description ? "\n\n" + description : ""}${hashtagString ? "\n\n" + hashtagString : ""}`;
-
-    // Twitter: Title + Description + Hashtags + Via
+    
+    // Twitter/X: Concise format optimized for character limits
     twitterMessage = `${title}${description ? "\n\n" + description : ""}${hashtagString ? "\n" + hashtagString : ""}`;
-
-    // Telegram: Casual with emoji
+    
+    // Telegram: Similar to WhatsApp but optimized for Telegram's link previews
     telegramMessage = `\u{1F517} ${title}${description ? "\n\n" + description : ""}${hashtagString ? "\n\n" + hashtagString : ""}\n\nLive + working\nClean stuff, take a look \u{1F447}`;
-
-    // Reddit: Title + Description
+    
+    // Reddit: Uses a dash separator for the post title
     redditTitle = `${title}${description ? " - " + description : ""}`;
-
-    // Email: Friendly greeting
+    
+    // Email: Full body template with greeting and project context
     emailBody = `Hey \u{1F44B}\n\nSharing a clean project I came across:\n${title}${description ? "\n\n" + description : ""}\n\nLive, simple, and usable \u{2014} take a look \u{1F447}`;
-
-    // Pinterest: Title + Description
+    
+    // Pinterest: Basic text for the pin description
     pinterestText = `${title || ""}${description ? " - " + description : ""}`;
 
+    // Final encoding for the full message strings
     const encodedWhatsapp = encodeURIComponent(whatsappMessage);
-    const encodedFacebook = encodeURIComponent(facebookMessage);
     const encodedTwitter = encodeURIComponent(twitterMessage);
     const encodedTelegram = encodeURIComponent(telegramMessage);
     const encodedReddit = encodeURIComponent(redditTitle);
     const encodedEmail = encodeURIComponent(emailBody);
     const encodedPinterest = encodeURIComponent(pinterestText);
 
+    // Map of intent/share URLs for each platform
     const urls = {
       whatsapp: `https://wa.me/?text=${encodedWhatsapp}%20${encodedUrl}`,
-      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}&quote=${encodedFacebook}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}&quote=${encodeURIComponent(facebookMessage)}`,
       twitter: `https://twitter.com/intent/tweet?text=${encodedTwitter}&url=${encodedUrl}${via ? "&via=" + encodeURIComponent(via) : ""}`,
       linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
       telegram: `https://t.me/share/url?url=${encodedUrl}&text=${encodedTelegram}`,
@@ -249,13 +277,15 @@ class SocialShareButton {
     return urls[platform] || "";
   }
 
+  // Utility to add and track event listeners for cleanup
   addEventListener(element, type, handler, options = false) {
     if (!element) return;
     element.addEventListener(type, handler, options);
+    // Track listener so we can remove it during destroy() to prevent memory leaks
     this.listeners.push({ element, type, handler, options });
   }
 
-  //Remove all tracked event listeners (used in destroy to prevent memory leaks)
+  // Remove all tracked event listeners from their respective elements
   removeAllListeners() {
     this.listeners.forEach(({ element, type, handler, options }) => {
       if (element) {
@@ -265,135 +295,102 @@ class SocialShareButton {
     this.listeners = [];
   }
 
+  // Attach all necessary UI event listeners
   attachEvents() {
-    // Re-entrancy guard: prevent double-registration if called multiple times
+    // Guard to ensure we only bind events once per instance life-cycle
     if (this.eventsAttached) return;
 
-    // Button click to open modal
+    // 1. Trigger button click -> Opens the modal
     if (this.button) {
-      const openModalHandler = () => this.openModal();
-      this.addEventListener(this.button, "click", openModalHandler);
+      this.addEventListener(this.button, "click", () => this.openModal());
     }
 
-    // Modal overlay click to close
-    const modalClickHandler = (e) => {
-      if (e.target === this.modal) {
-        this.closeModal();
-      }
-    };
-    this.addEventListener(this.modal, "click", modalClickHandler);
-
-    // Close button
-    const closeBtn = this.modal.querySelector(".social-share-modal-close");
-    const closeBtnHandler = () => this.closeModal();
-    this.addEventListener(closeBtn, "click", closeBtnHandler);
-
-    // Platform buttons
-    const platformBtns = this.modal.querySelectorAll(".social-share-platform-btn");
-    platformBtns.forEach((btn) => {
-      const platformHandler = () => {
-        const platform = btn.dataset.platform;
-        this.share(platform);
-      };
-      this.addEventListener(btn, "click", platformHandler);
+    // 2. Modal overlay click -> Closes the modal (if clicking outside content)
+    this.addEventListener(this.modal, "click", (e) => {
+      if (e.target === this.modal) this.closeModal();
     });
 
-    // Copy button
+    // 3. 'X' Close button click
+    const closeBtn = this.modal.querySelector(".social-share-modal-close");
+    this.addEventListener(closeBtn, "click", () => this.closeModal());
+
+    // 4. Platform share buttons -> Triggers individual platform share logic
+    const platformBtns = this.modal.querySelectorAll(".social-share-platform-btn");
+    platformBtns.forEach((btn) => {
+      this.addEventListener(btn, "click", () => this.share(btn.dataset.platform));
+    });
+
+    // 5. 'Copy' button -> Copies current URL to clipboard
     const copyBtn = this.modal.querySelector(".social-share-copy-btn");
-    const copyBtnHandler = () => this.copyLink();
-    this.addEventListener(copyBtn, "click", copyBtnHandler);
+    this.addEventListener(copyBtn, "click", () => this.copyLink());
 
-    // Input click to select
+    // 6. URL input field -> Auto-select text on click for easy manual copying
     const input = this.modal.querySelector(".social-share-link-input input");
-    const inputSelectHandler = (e) => e.target.select();
-    this.addEventListener(input, "click", inputSelectHandler);
+    this.addEventListener(input, "click", (e) => e.target.select());
 
-    // ESC key to close
+    // 7. Global Escape key -> Closes the modal if it's currently open
     this.handleKeydown = (e) => {
-      if (e.key === "Escape" && this.isModalOpen) {
-        this.closeModal();
-      }
+      if (e.key === "Escape" && this.isModalOpen) this.closeModal();
     };
     if (typeof document !== "undefined") {
       document.addEventListener("keydown", this.handleKeydown);
     }
 
-    this.eventsAttached = true; // Mark as attached
+    this.eventsAttached = true;
   }
+
+  // Show the share modal with animation and body scroll locking
   openModal() {
-    // Safety check: prevent errors if modal was destroyed
     if (!this.modal) return;
 
     this.isModalOpen = true;
-    this.modal.style.display = "flex";
+    this.modal.style.display = "flex"; // Initial display to allow layout calculation
     this._emit("social_share_popup_open", "popup_open");
 
-    // Shared body overflow management: only increment counter if this instance doesn't already own the lock
+    // Lock body scroll to prevent 'background' scrolling while modal is active
     if (typeof document !== "undefined" && document.body) {
       if (!this.ownsBodyLock) {
-        // Only increment if this instance doesn't already own a lock
+        // Only store original overflow if this is the first modal opening on the page
         if (SocialShareButton.openModalCount === 0) {
-          // Save original overflow before first modal opens
           SocialShareButton.originalBodyOverflow = document.body.style.overflow;
         }
         SocialShareButton.openModalCount++;
-        this.ownsBodyLock = true; // Mark that this instance owns a lock
+        this.ownsBodyLock = true;
       }
       document.body.style.overflow = "hidden";
     }
 
-    // Clear any pending animations (both open and close to prevent race conditions)
-    if (this.openTimeout) {
-      clearTimeout(this.openTimeout);
-      this.openTimeout = null;
-    }
-    if (this.closeTimeout) {
-      clearTimeout(this.closeTimeout);
-      this.closeTimeout = null;
-    }
-
-    // Animate in
+    // Trigger CSS transition/animation via the .active class
+    // Timeout is necessary to ensure 'display: flex' has been processed by the browser
+    if (this.openTimeout) clearTimeout(this.openTimeout);
     this.openTimeout = setTimeout(() => {
-      if (this.modal) {
-        // Safety check in case destroy() was called
-        this.modal.classList.add("active");
-      }
+      if (this.modal) this.modal.classList.add("active");
       this.openTimeout = null;
     }, 10);
   }
 
+  // Hide the share modal and cleanup scroll locks
   closeModal() {
-    if (!this.modal) return; // Safety check
+    if (!this.modal) return;
 
+    // Remove .active to trigger the CSS 'close' transition
     this.modal.classList.remove("active");
     this._emit("social_share_popup_close", "popup_close");
 
-    // Clear any pending animations (both open and close to prevent race conditions)
-    if (this.openTimeout) {
-      clearTimeout(this.openTimeout);
-      this.openTimeout = null;
-    }
-    if (this.closeTimeout) {
-      clearTimeout(this.closeTimeout);
-      this.closeTimeout = null;
-    }
-
+    // Wait for the transition to complete (approx 200ms) before hiding completely
+    if (this.closeTimeout) clearTimeout(this.closeTimeout);
     this.closeTimeout = setTimeout(() => {
       if (this.modal) {
-        // Safety check in case destroy() was called
         this.isModalOpen = false;
         this.modal.style.display = "none";
 
-        // Shared body overflow management: only decrement if this instance owns the lock
+        // Unlock body scroll if this was the last modal active
         if (this.ownsBodyLock && typeof document !== "undefined" && document.body) {
-          // Decrement counter (guard against negative)
-          if (SocialShareButton.openModalCount > 0) {
-            SocialShareButton.openModalCount--;
-          }
-          this.ownsBodyLock = false; // Release the lock
+          if (SocialShareButton.openModalCount > 0) SocialShareButton.openModalCount--;
+          this.ownsBodyLock = false;
 
-          // Restore original overflow only when all modals are closed
           if (SocialShareButton.openModalCount === 0) {
+            // Restore original scroll behavior
             document.body.style.overflow = SocialShareButton.originalBodyOverflow || "";
             SocialShareButton.originalBodyOverflow = null;
           }
@@ -403,6 +400,7 @@ class SocialShareButton {
     }, 200);
   }
 
+  // Trigger the platform-specific sharing action
   share(platform) {
     const shareUrl = this.getShareURL(platform);
 
@@ -410,254 +408,157 @@ class SocialShareButton {
       this._emit("social_share_click", "share", { platform });
 
       if (platform === "email") {
+        // Mailto links work best as direct location changes
         window.location.href = shareUrl;
       } else {
+        // Social platforms are opened in a centered popup window
         window.open(shareUrl, "_blank", "noopener,noreferrer,width=600,height=600");
       }
 
       this._emit("social_share_success", "share", { platform });
-
-      if (this.options.onShare) {
-        this.options.onShare(platform, this.options.url);
-      }
+      
+      // Fire optional user-provided callback
+      if (this.options.onShare) this.options.onShare(platform, this.options.url);
     } else {
+      // Log error if platform is unknown or URL generation failed
       this._emit("social_share_error", "error", {
         platform,
-        errorMessage: `No share URL configured for platform: ${platform}`,
+        errorMessage: `No share URL for platform: ${platform}`,
       });
     }
   }
 
+  // Copy the primary URL to the user's clipboard
   copyLink() {
     const input = this.modal.querySelector(".social-share-link-input input");
     const copyBtn = this.modal.querySelector(".social-share-copy-btn");
 
-    // Check if clipboard API is available
+    // Prefer modern async Clipboard API if available
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard
         .writeText(this.options.url)
         .then(() => {
-          // Guard against async callback after destroy
           if (this.isDestroyed) return;
-
-          copyBtn.textContent = "Copied!";
-          copyBtn.classList.add("copied");
-          this._emit("social_share_copy", "copy");
-
-          if (this.options.onCopy) {
-            this.options.onCopy(this.options.url);
-          }
-
-          // Clear any existing feedback timeout
-          if (this.feedbackTimeout) {
-            clearTimeout(this.feedbackTimeout);
-          }
-
-          // Track feedback timeout to prevent callback after destroy
-          this.feedbackTimeout = setTimeout(() => {
-            if (this.isDestroyed || !copyBtn) return; // Safety check
-            copyBtn.textContent = "Copy";
-            copyBtn.classList.remove("copied");
-            this.feedbackTimeout = null;
-          }, 2000);
+          this._handleCopySuccess(copyBtn);
         })
-        .catch(() => {
-          // Fallback to manual selection
-          this.fallbackCopy(input, copyBtn);
-        });
+        .catch(() => this.fallbackCopy(input, copyBtn));
     } else {
-      // Fallback for browsers without clipboard API
+      // Fallback to legacy execCommand method
       this.fallbackCopy(input, copyBtn);
     }
   }
 
-  fallbackCopy(input, copyBtn) {
-    // Guard against execution after destroy
-    if (this.isDestroyed) return;
+  // Provide visual 'Copied!' feedback to the user
+  _handleCopySuccess(copyBtn) {
+    copyBtn.textContent = "Copied!";
+    copyBtn.classList.add("copied");
+    this._emit("social_share_copy", "copy");
 
+    if (this.options.onCopy) this.options.onCopy(this.options.url);
+    if (this.feedbackTimeout) clearTimeout(this.feedbackTimeout);
+
+    // Revert button text after 2 seconds
+    this.feedbackTimeout = setTimeout(() => {
+      if (this.isDestroyed || !copyBtn) return;
+      copyBtn.textContent = "Copy";
+      copyBtn.classList.remove("copied");
+      this.feedbackTimeout = null;
+    }, 2000);
+  }
+
+  // Legacy clipboard fallback using a hidden text selection
+  fallbackCopy(input, copyBtn) {
+    if (this.isDestroyed) return;
     try {
       input.select();
-      input.setSelectionRange(0, 99999); // For mobile devices
+      input.setSelectionRange(0, 99999); // Compatibility for mobile
       document.execCommand("copy");
-
-      copyBtn.textContent = "Copied!";
-      copyBtn.classList.add("copied");
-      this._emit("social_share_copy", "copy");
-
-      if (this.options.onCopy) {
-        this.options.onCopy(this.options.url);
-      }
-
-      // Clear any existing feedback timeout
-      if (this.feedbackTimeout) {
-        clearTimeout(this.feedbackTimeout);
-      }
-
-      // Track feedback timeout to prevent callback after destroy
-      this.feedbackTimeout = setTimeout(() => {
-        if (this.isDestroyed || !copyBtn) return; // Safety check
-        copyBtn.textContent = "Copy";
-        copyBtn.classList.remove("copied");
-        this.feedbackTimeout = null;
-      }, 2000);
+      this._handleCopySuccess(copyBtn);
     } catch (_err) {
       copyBtn.textContent = "Failed";
-
-      // Clear any existing feedback timeout
-      if (this.feedbackTimeout) {
-        clearTimeout(this.feedbackTimeout);
-      }
-
-      // Track feedback timeout to prevent callback after destroy
-      this.feedbackTimeout = setTimeout(() => {
-        if (this.isDestroyed || !copyBtn) return; // Safety check
-        copyBtn.textContent = "Copy";
-        this.feedbackTimeout = null;
+      setTimeout(() => {
+        if (!this.isDestroyed && copyBtn) copyBtn.textContent = "Copy";
       }, 2000);
     }
   }
 
+  // Full cleanup of DOM elements and global listeners
   destroy() {
-    if (this.handleKeydown) {
-      if (typeof document !== "undefined") {
-        document.removeEventListener("keydown", this.handleKeydown);
-      }
-      this.handleKeydown = null;
-    }
-    // Mark as destroyed to prevent async callbacks
     this.isDestroyed = true;
+    
+    // Remove global keyboard listener
+    if (this.handleKeydown && typeof document !== "undefined") {
+      document.removeEventListener("keydown", this.handleKeydown);
+    }
 
-    // Remove all tracked event listeners (prevents memory leaks)
+    // Remove all tracked DOM listeners
     this.removeAllListeners();
+    
+    // Clear any pending timers
+    [this.openTimeout, this.closeTimeout, this.feedbackTimeout].forEach(clearTimeout);
 
-    // Clear any pending animation timeouts to prevent accessing null references
-    if (this.openTimeout) {
-      clearTimeout(this.openTimeout);
-      this.openTimeout = null;
-    }
-    if (this.closeTimeout) {
-      clearTimeout(this.closeTimeout);
-      this.closeTimeout = null;
-    }
-    if (this.feedbackTimeout) {
-      clearTimeout(this.feedbackTimeout);
-      this.feedbackTimeout = null;
-    }
+    // Remove elements from DOM
+    if (this.button && this.button.parentNode) this.button.parentNode.removeChild(this.button);
+    if (this.modal && this.modal.parentNode) this.modal.parentNode.removeChild(this.modal);
 
-    // Remove custom color handlers
-    if (this.button && this.customColorMouseEnterHandler) {
-      this.button.removeEventListener("mouseenter", this.customColorMouseEnterHandler);
-      this.customColorMouseEnterHandler = null;
-    }
-    if (this.button && this.customColorMouseLeaveHandler) {
-      this.button.removeEventListener("mouseleave", this.customColorMouseLeaveHandler);
-      this.customColorMouseLeaveHandler = null;
-    }
-
-    // Remove DOM elements
-    if (this.button && this.button.parentNode) {
-      this.button.parentNode.removeChild(this.button);
-    }
-    if (this.modal && this.modal.parentNode) {
-      this.modal.parentNode.removeChild(this.modal);
-    }
-
-    // Shared body overflow management: only decrement if this instance owns the lock
+    // Ensure body scroll is unlocked if this instance was holding it
     if (this.ownsBodyLock && typeof document !== "undefined" && document.body) {
-      // Decrement counter (guard against negative)
-      if (SocialShareButton.openModalCount > 0) {
-        SocialShareButton.openModalCount--;
-      }
-      this.ownsBodyLock = false; // Release the lock
-
-      // Restore original overflow only when all modals are closed
+      if (SocialShareButton.openModalCount > 0) SocialShareButton.openModalCount--;
       if (SocialShareButton.openModalCount === 0) {
         document.body.style.overflow = SocialShareButton.originalBodyOverflow || "";
-        SocialShareButton.originalBodyOverflow = null;
       }
     }
 
-    // Clear references (makes destroy idempotent)
+    // Nullify references for GC
     this.button = null;
     this.modal = null;
-    this.isModalOpen = false;
-    this.eventsAttached = false; // Reset re-entrancy guard
   }
 
+  // Allow dynamic updates to configuration without re-initializing
   updateOptions(options) {
     this.options = { ...this.options, ...options };
-
-    // Update URL in modal if it exists
+    
+    // Sync modal input if URL changed
     if (this.modal) {
       const input = this.modal.querySelector(".social-share-link-input input");
-      if (input) {
-        input.value = this.options.url;
-      }
+      if (input) input.value = this.options.url;
     }
-
-    // Reapply custom colors if color option changed
-    if ("buttonColor" in options || "buttonHoverColor" in options) {
-      this.applyCustomColors();
-    }
+    
+    // Re-apply styles if colors changed
+    if ("buttonColor" in options || "buttonHoverColor" in options) this.applyCustomColors();
   }
 
+  // Dynamically apply user-provided CSS colors to the trigger button
   applyCustomColors() {
     if (!this.button) return;
-
-    // Remove legacy global style tag to prevent cross-instance color bleed.
-    const styleTag = document.getElementById("social-share-custom-colors");
-    if (styleTag && styleTag.parentNode) {
-      styleTag.parentNode.removeChild(styleTag);
-    }
-
-    if (this.customColorMouseEnterHandler) {
-      this.button.removeEventListener("mouseenter", this.customColorMouseEnterHandler);
-      this.customColorMouseEnterHandler = null;
-    }
-    if (this.customColorMouseLeaveHandler) {
-      this.button.removeEventListener("mouseleave", this.customColorMouseLeaveHandler);
-      this.customColorMouseLeaveHandler = null;
-    }
-
-    this.button.style.removeProperty("background-color");
-    this.button.style.removeProperty("background-image");
-    this.button.style.removeProperty("border-color");
 
     const baseColor = this.options.buttonColor || "";
     const hoverColor = this.options.buttonHoverColor || baseColor;
 
     if (!baseColor && !hoverColor) return;
 
+    // Apply initial static color
     if (baseColor) {
-      this.button.style.backgroundImage = "none";
       this.button.style.backgroundColor = baseColor;
       this.button.style.borderColor = baseColor;
     }
 
-    this.customColorMouseEnterHandler = () => {
+    // Bind JS-based hover handlers (more reliable than dynamic CSS injection)
+    this.button.onmouseenter = () => {
       if (hoverColor) {
-        this.button.style.backgroundImage = "none";
         this.button.style.backgroundColor = hoverColor;
         this.button.style.borderColor = hoverColor;
       }
     };
-
-    this.customColorMouseLeaveHandler = () => {
+    this.button.onmouseleave = () => {
       if (baseColor) {
-        this.button.style.backgroundImage = "none";
         this.button.style.backgroundColor = baseColor;
         this.button.style.borderColor = baseColor;
       } else {
+        // If no base color provided, revert to theme defaults
         this.button.style.removeProperty("background-color");
-        this.button.style.removeProperty("background-image");
-        this.button.style.removeProperty("border-color");
       }
     };
-
-    // Note: Custom color handlers are managed separately (not in listeners)
-    // because they need to be removed/reapplied when colors change
-    this.button.addEventListener("mouseenter", this.customColorMouseEnterHandler);
-    this.button.addEventListener("mouseleave", this.customColorMouseLeaveHandler);
   }
 
   // ---------------------------------------------------------------------------

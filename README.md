@@ -68,6 +68,23 @@ Lightweight social sharing component for web applications. Zero dependencies, fr
 
 ---
 
+## 📁 Project Structure
+
+```text
+SocialShareButton/
+├── src/
+│   ├── social-share-button.js        # Core Vanilla JS library
+│   ├── social-share-button.css       # Core styles (required)
+│   ├── social-share-analytics.js     # Analytics adapters (GA4, Mixpanel, etc.)
+│   ├── social-share-button-react.jsx # React wrapper component
+│   └── social-share-button-preact.jsx # Preact wrapper component
+├── public/                           # Static assets & logos
+├── docs/                             # Documentation guides
+└── index.html                        # Local demo & development sandbox
+```
+
+---
+
 ## Features
 
 - 🌐 Multiple platforms: WhatsApp, Facebook, X, LinkedIn, Telegram, Reddit, Email, Pinterest
