@@ -71,6 +71,14 @@
  * All events follow the `social_<object>_<action>` pattern which aligns with
  * GA4's recommended event naming scheme and is compatible with Segment,
  * Mixpanel, and PostHog out of the box.
+ *
+ * Debug Mode
+ * ───────────
+ * Pass `debug: true` to the SocialShareButton constructor and every emitted
+ * event will be logged to the browser console:
+ *
+ *   new SocialShareButton({ debug: true, ... });
+ *   // → [SocialShareButton Analytics] { eventName: 'social_share_click', ... }
  */
 
 // =============================================================================
@@ -98,16 +106,20 @@ class SocialShareAnalyticsPlugin {
 // =============================================================================
 // BUILT-IN ADAPTERS
 // =============================================================================
+// Each adapter is intentionally thin — it maps the standard payload to the
+// provider's SDK without bundling or loading any external scripts. The host
+// website is responsible for loading (and obtaining consent for) each SDK.
+// =============================================================================
 
-/**
- * Google Analytics 4 (GA4) Adapter
- * 
- * Maps library events to standard window.gtag() calls.
- */
+// -----------------------------------------------------------------------------
+// Google Analytics 4 (GA4)
+// Requires: window.gtag loaded by the host via the GA4 snippet.
+// Docs: https://developers.google.com/analytics/devguides/collection/ga4/events
+// -----------------------------------------------------------------------------
 class GoogleAnalyticsAdapter extends SocialShareAnalyticsPlugin {
   /**
-   * @param {Object} [config] - Optional configuration
-   * @param {string} [config.eventCategory] - Custom category for events (default: 'social_share')
+   * @param {Object} [config]
+   * @param {string} [config.eventCategory='social_share'] - GA4 event_category value.
    */
   constructor(config = {}) {
     super();
@@ -115,11 +127,9 @@ class GoogleAnalyticsAdapter extends SocialShareAnalyticsPlugin {
   }
 
   track(payload) {
-    // Check if gtag script is loaded and initialized
     if (typeof window === "undefined" || typeof window.gtag !== "function") {
       return;
     }
-    // Forward event to GA4 with recommended social sharing parameters
     window.gtag("event", payload.eventName, {
       event_category: this.eventCategory,
       event_label: payload.platform,
@@ -128,20 +138,18 @@ class GoogleAnalyticsAdapter extends SocialShareAnalyticsPlugin {
       share_title: payload.title,
       interaction_type: payload.interactionType,
       component_id: payload.componentId,
-      // Only include error message if it exists
       ...(payload.errorMessage ? { error_message: payload.errorMessage } : {}),
     });
   }
 }
 
-/**
- * Mixpanel Adapter
- * 
- * Maps library events to standard window.mixpanel.track() calls.
- */
+// -----------------------------------------------------------------------------
+// Mixpanel
+// Requires: window.mixpanel loaded by the host.
+// Docs: https://developer.mixpanel.com/docs/javascript
+// -----------------------------------------------------------------------------
 class MixpanelAdapter extends SocialShareAnalyticsPlugin {
   track(payload) {
-    // Check if mixpanel library is initialized
     if (
       typeof window === "undefined" ||
       typeof window.mixpanel === "undefined" ||
@@ -149,7 +157,6 @@ class MixpanelAdapter extends SocialShareAnalyticsPlugin {
     ) {
       return;
     }
-    // Forward event with full metadata
     window.mixpanel.track(payload.eventName, {
       platform: payload.platform,
       url: payload.url,
@@ -162,14 +169,13 @@ class MixpanelAdapter extends SocialShareAnalyticsPlugin {
   }
 }
 
-/**
- * Segment Adapter
- * 
- * Maps library events to standard window.analytics.track() calls.
- */
+// -----------------------------------------------------------------------------
+// Segment (Analytics.js / analytics-next)
+// Requires: window.analytics loaded by the host.
+// Docs: https://segment.com/docs/connections/sources/catalog/libraries/website/javascript/
+// -----------------------------------------------------------------------------
 class SegmentAdapter extends SocialShareAnalyticsPlugin {
   track(payload) {
-    // Check if Segment's analytics.js is loaded
     if (
       typeof window === "undefined" ||
       typeof window.analytics === "undefined" ||
@@ -177,7 +183,6 @@ class SegmentAdapter extends SocialShareAnalyticsPlugin {
     ) {
       return;
     }
-    // Forward event to Segment
     window.analytics.track(payload.eventName, {
       platform: payload.platform,
       url: payload.url,
@@ -189,18 +194,16 @@ class SegmentAdapter extends SocialShareAnalyticsPlugin {
   }
 }
 
-/**
- * Plausible Analytics Adapter
- * 
- * Maps library events to window.plausible() custom goal calls.
- */
+// -----------------------------------------------------------------------------
+// Plausible Analytics
+// Requires: window.plausible loaded by the host (script.js with custom events).
+// Docs: https://plausible.io/docs/custom-event-goals
+// -----------------------------------------------------------------------------
 class PlausibleAdapter extends SocialShareAnalyticsPlugin {
   track(payload) {
-    // Check if plausible script is active
     if (typeof window === "undefined" || typeof window.plausible !== "function") {
       return;
     }
-    // Forward event as a custom goal with properties
     window.plausible(payload.eventName, {
       props: {
         platform: payload.platform,
@@ -212,14 +215,13 @@ class PlausibleAdapter extends SocialShareAnalyticsPlugin {
   }
 }
 
-/**
- * PostHog Adapter
- * 
- * Maps library events to window.posthog.capture() calls.
- */
+// -----------------------------------------------------------------------------
+// PostHog
+// Requires: window.posthog loaded by the host.
+// Docs: https://posthog.com/docs/libraries/js
+// -----------------------------------------------------------------------------
 class PostHogAdapter extends SocialShareAnalyticsPlugin {
   track(payload) {
-    // Check if posthog is initialized
     if (
       typeof window === "undefined" ||
       typeof window.posthog === "undefined" ||
@@ -227,7 +229,6 @@ class PostHogAdapter extends SocialShareAnalyticsPlugin {
     ) {
       return;
     }
-    // Forward event to PostHog
     window.posthog.capture(payload.eventName, {
       platform: payload.platform,
       url: payload.url,
@@ -240,15 +241,18 @@ class PostHogAdapter extends SocialShareAnalyticsPlugin {
   }
 }
 
-/**
- * Custom / Callback Adapter
- * 
- * A generic adapter that allows passing any function as a plugin.
- * Useful for custom analytics pipelines or logging.
- */
+// -----------------------------------------------------------------------------
+// Custom / Callback Adapter
+// Use this adapter to wrap any inline function without subclassing.
+//
+// Example:
+//   new CustomAdapter((payload) => {
+//     fetch('/api/analytics', { method: 'POST', body: JSON.stringify(payload) });
+//   })
+// -----------------------------------------------------------------------------
 class CustomAdapter extends SocialShareAnalyticsPlugin {
   /**
-   * @param {function(Object): void} onTrack - Function called with the event payload.
+   * @param {function(Object): void} onTrack - Called with the event payload.
    */
   constructor(onTrack) {
     super();
@@ -277,12 +281,10 @@ const adapters = {
   CustomAdapter,
 };
 
-// CommonJS export
 if (typeof module !== "undefined" && module.exports) {
   module.exports = adapters;
 }
 
-// Global browser export (for CDN users)
 if (typeof window !== "undefined") {
   window.SocialShareAnalytics = adapters;
 }

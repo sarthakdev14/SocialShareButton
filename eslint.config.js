@@ -22,11 +22,12 @@ export default [
           jsx: true, // Enable JSX support for React/Preact components
         },
       },
-      globals: {
-        ...globals.browser, // Standard browser globals (window, document, etc.)
-        ...globals.es2021,  // Modern ES2021 features
-        ...globals.node,    // Node.js globals for build-time scripts
-      },
+     globals: {
+      ...globals.browser, // Standard browser globals (window, document, etc.)
+      ...globals.es2021,  // Modern ES2021 features
+      module: "readonly", // Allow CommonJS usage
+      exports: "readonly",
+    },
     },
     rules: {
       // Prevent accidental console logs in production code

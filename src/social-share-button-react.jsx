@@ -56,9 +56,7 @@ export const SocialShareButton = ({
    * Includes a safe check for the global SocialShareButton class.
    */
   useEffect(() => {
-    const init = () => {
       if (containerRef.current && !shareButtonRef.current) {
-        // Ensure the core library is loaded globally (for CDN usage)
         if (typeof window !== "undefined" && window.SocialShareButton) {
           shareButtonRef.current = new window.SocialShareButton({
             container: containerRef.current,
@@ -71,9 +69,6 @@ export const SocialShareButton = ({
             theme,
             buttonText,
             customClass,
-            buttonColor,
-            buttonHoverColor,
-            showButton,
             onShare,
             onCopy,
             buttonStyle,
@@ -86,18 +81,14 @@ export const SocialShareButton = ({
           });
         }
       }
-    };
 
-    init();
-
-    // Cleanup: Destroy the instance when the component unmounts to prevent memory leaks
-    return () => {
-      if (shareButtonRef.current) {
-        shareButtonRef.current.destroy();
-        shareButtonRef.current = null;
-      }
-    };
-  }, []); // Run only on mount
+      return () => {
+        if (shareButtonRef.current) {
+          shareButtonRef.current.destroy();
+          shareButtonRef.current = null;
+        }
+      };
+    }, []);
 
   /**
    * Update Effect
