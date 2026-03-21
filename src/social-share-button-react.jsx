@@ -6,13 +6,6 @@ import { useEffect, useRef } from "react";
  * Provides a React functional component that wraps the core SocialShareButton 
  * vanilla JS library. Handles lifecycle, dynamic updates, and provides 
  * sensible defaults for all sharing options.
- *
- * @param {Object} props - Component props for configuring the share button
- * @param {string} props.url - URL to share
- * @param {string} props.title - Title of the content
- * @param {string} props.description - Description for sharing
- * @param {Array<string>} props.platforms - Platforms to display
- * @param {boolean} props.analytics - Enable analytics events
  */
 export const SocialShareButton = ({
   url,
@@ -24,9 +17,6 @@ export const SocialShareButton = ({
   theme = "dark",
   buttonText = "Share",
   customClass = "",
-  buttonColor = "",
-  buttonHoverColor = "",
-  showButton = true,
   onShare = null,
   onCopy = null,
   buttonStyle = "default",
@@ -110,9 +100,6 @@ export const SocialShareButton = ({
         theme,
         buttonText,
         customClass,
-        buttonColor,
-        buttonHoverColor,
-        showButton,
         onShare,
         onCopy,
         buttonStyle,
@@ -134,9 +121,6 @@ export const SocialShareButton = ({
     theme,
     buttonText,
     customClass,
-    buttonColor,
-    buttonHoverColor,
-    showButton,
     onShare,
     onCopy,
     buttonStyle,
@@ -147,7 +131,6 @@ export const SocialShareButton = ({
     componentId,
     debug,
   ]);
-
   // Provide the mount point for the vanilla JS logic
   return <div ref={containerRef}></div>;
 };
