@@ -31,6 +31,9 @@ class SocialShareButton {
       buttonHoverColor: options.buttonHoverColor || "",
       onShare: options.onShare || null,
       onCopy: options.onCopy || null,
+      onOpen: options.onOpen || null,
+      onClose: options.onClose || null,
+      shareText: options.shareText || "",
       container: options.container || null,
       showButton: options.showButton !== false,
       buttonStyle: options.buttonStyle || "default",
@@ -75,6 +78,7 @@ class SocialShareButton {
 
   createButton() {
     const button = document.createElement("button");
+    button.type = "button";
     button.className = `social-share-btn ${this.options.buttonStyle} ${this.options.customClass}`;
     button.setAttribute("aria-label", "Share");
     button.innerHTML = `
@@ -99,6 +103,9 @@ class SocialShareButton {
 
   createModal() {
     const modal = document.createElement("div");
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("aria-modal", "true");
+    modal.setAttribute("aria-hidden", "true");
     modal.className = `social-share-modal-overlay ${this.options.theme}`;
     modal.style.display = "none";
     modal.innerHTML = `
@@ -179,7 +186,7 @@ class SocialShareButton {
       .map((platform) => {
         const { name, color, icon } = platforms[platform];
         return `
-          <button class="social-share-platform-btn" data-platform="${platform}" style="--platform-color: ${color}">
+          <button type="button" class="social-share-platform-btn" data-platform="${platform}" style="--platform-color: ${color}">
             <div class="social-share-platform-icon" style="background-color: ${color}">
               <svg viewBox="0 0 24 24" fill="white">${icon}</svg>
             </div>
@@ -191,13 +198,13 @@ class SocialShareButton {
   }
 
   getShareURL(platform) {
-    const { url, title, description, hashtags, via } = this.options;
+    const { url, title, description, hashtags, via, shareText } = this.options;
+    const message = shareText || title || "Check this out";
     const encodedUrl = encodeURIComponent(url);
-    const encodedTitle = encodeURIComponent(title);
-    // const encodedDesc = encodeURIComponent(description);
+    const encodedTitle = encodeURIComponent(title || "");
     const hashtagString = hashtags.length ? "#" + hashtags.join(" #") : "";
 
-    // Build platform-specific messages with customizable parameters
+    // Build platform-specific messages with configurable base message
     let whatsappMessage,
       facebookMessage,
       twitterMessage,
@@ -207,13 +214,13 @@ class SocialShareButton {
       pinterestText;
 
     // WhatsApp: Casual with emoji
-    whatsappMessage = `\u{1F680} ${title}${description ? "\n\n" + description : ""}${hashtagString ? "\n\n" + hashtagString : ""}\n\nLive on the site \u{1F440}\nClean UI, smooth flow \u{2014} worth peeking\n\u{1F447}`;
+    whatsappMessage = `\u{1F680} ${message}${description ? "\n\n" + description : ""}${hashtagString ? "\n\n" + hashtagString : ""}\n\nLive on the site \u{1F440}\nClean UI, smooth flow \u{2014} worth peeking\n\u{1F447}`;
 
-    // Facebook: Title + Description
-    facebookMessage = `${title}${description ? "\n\n" + description : ""}${hashtagString ? "\n\n" + hashtagString : ""}`;
+    // Facebook: message + Description
+    facebookMessage = `${message}${description ? "\n\n" + description : ""}${hashtagString ? "\n\n" + hashtagString : ""}`;
 
-    // Twitter: Title + Description + Hashtags + Via
-    twitterMessage = `${title}${description ? "\n\n" + description : ""}${hashtagString ? "\n" + hashtagString : ""}`;
+    // Twitter: message + Description + Hashtags + Via
+    twitterMessage = `${message}${description ? "\n\n" + description : ""}${hashtagString ? "\n" + hashtagString : ""}`;
 
     // Telegram: Casual with emoji
     telegramMessage = `\u{1F517} ${title}${description ? "\n\n" + description : ""}${hashtagString ? "\n\n" + hashtagString : ""}\n\nLive + working\nClean stuff, take a look \u{1F447}`;
@@ -326,7 +333,15 @@ class SocialShareButton {
 
     this.isModalOpen = true;
     this.modal.style.display = "flex";
+    this.modal.setAttribute("aria-hidden", "false");
     this._emit("social_share_popup_open", "popup_open");
+    if (typeof this.options.onOpen === "function") {
+      try {
+        this.options.onOpen({ url: this.options.url, platform: null });
+      } catch (err) {
+        this._debugWarn("onOpen callback failed", err);
+      }
+    }
 
     // Shared body overflow management: only increment counter if this instance doesn't already own the lock
     if (typeof document !== "undefined" && document.body) {
@@ -366,7 +381,15 @@ class SocialShareButton {
     if (!this.modal) return; // Safety check
 
     this.modal.classList.remove("active");
+    this.modal.setAttribute("aria-hidden", "true");
     this._emit("social_share_popup_close", "popup_close");
+    if (typeof this.options.onClose === "function") {
+      try {
+        this.options.onClose({ url: this.options.url, platform: null });
+      } catch (err) {
+        this._debugWarn("onClose callback failed", err);
+      }
+    }
 
     // Clear any pending animations (both open and close to prevent race conditions)
     if (this.openTimeout) {
