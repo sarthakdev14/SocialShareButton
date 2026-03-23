@@ -31,9 +31,10 @@ class SocialShareButton {
       buttonHoverColor: options.buttonHoverColor || "",
       onShare: options.onShare || null,
       onCopy: options.onCopy || null,
-      onOpen: options.onOpen || null,
-      onClose: options.onClose || null,
-      shareText: options.shareText || "",
+      onOpen: options.onOpen || null, // callback: ({ url, platform }) => void - triggered when modal opens
+      onClose: options.onClose || null, // callback: ({ url, platform }) => void - triggered when modal closes
+      shareText: options.shareText || "", // custom share message text; overrides title for share content
+      defaultShareText: options.defaultShareText || "Check this out", // fallback message when no title/shareText provided
       container: options.container || null,
       showButton: options.showButton !== false,
       buttonStyle: options.buttonStyle || "default",
@@ -105,13 +106,14 @@ class SocialShareButton {
     const modal = document.createElement("div");
     modal.setAttribute("role", "dialog");
     modal.setAttribute("aria-modal", "true");
+    modal.setAttribute("aria-labelledby", "social-share-modal-title");
     modal.setAttribute("aria-hidden", "true");
     modal.className = `social-share-modal-overlay ${this.options.theme}`;
     modal.style.display = "none";
     modal.innerHTML = `
       <div class="social-share-modal-content ${this.options.modalPosition}">
         <div class="social-share-modal-header">
-          <h3>Share</h3>
+          <h3 id="social-share-modal-title">Share</h3>
           <button class="social-share-modal-close" aria-label="Close">✕</button>
         </div>
         <div class="social-share-platforms">
@@ -198,8 +200,8 @@ class SocialShareButton {
   }
 
   getShareURL(platform) {
-    const { url, title, description, hashtags, via, shareText } = this.options;
-    const message = shareText || title || "Check this out";
+    const { url, title, description, hashtags, via, shareText, defaultShareText } = this.options;
+    const message = shareText || title || defaultShareText;
     const encodedUrl = encodeURIComponent(url);
     const encodedTitle = encodeURIComponent(title || "");
     const hashtagString = hashtags.length ? "#" + hashtags.join(" #") : "";
@@ -223,16 +225,16 @@ class SocialShareButton {
     twitterMessage = `${message}${description ? "\n\n" + description : ""}${hashtagString ? "\n" + hashtagString : ""}`;
 
     // Telegram: Casual with emoji
-    telegramMessage = `\u{1F517} ${title}${description ? "\n\n" + description : ""}${hashtagString ? "\n\n" + hashtagString : ""}\n\nLive + working\nClean stuff, take a look \u{1F447}`;
+    telegramMessage = `\u{1F517} ${message}${description ? "\n\n" + description : ""}${hashtagString ? "\n\n" + hashtagString : ""}\n\nLive + working\nClean stuff, take a look \u{1F447}`;
 
-    // Reddit: Title + Description
-    redditTitle = `${title}${description ? " - " + description : ""}`;
+    // Reddit: message + Description
+    redditTitle = `${message}${description ? " - " + description : ""}`;
 
     // Email: Friendly greeting
-    emailBody = `Hey \u{1F44B}\n\nSharing a clean project I came across:\n${title}${description ? "\n\n" + description : ""}\n\nLive, simple, and usable \u{2014} take a look \u{1F447}`;
+    emailBody = `Hey \u{1F44B}\n\nSharing a clean project I came across:\n${message}${description ? "\n\n" + description : ""}\n\nLive, simple, and usable \u{2014} take a look \u{1F447}`;
 
-    // Pinterest: Title + Description
-    pinterestText = `${title || ""}${description ? " - " + description : ""}`;
+    // Pinterest: message + Description
+    pinterestText = `${message}${description ? " - " + description : ""}`;
 
     const encodedWhatsapp = encodeURIComponent(whatsappMessage);
     const encodedFacebook = encodeURIComponent(facebookMessage);
